@@ -1,0 +1,201 @@
+/* @font-face {
+    font-family: "Twemoji Mozilla";
+    src: url(./fonts/TwemojiMozilla.ttf) format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  } */
+
+  @font-face {
+    font-family: "Twemoji Mozilla";
+    /* Change the path to absolute URL */
+    src: url(/fonts/TwemojiMozilla.ttf) format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  .stdropdown-container {
+    text-align: left;
+    border: 1px solid #ccc;
+    position: relative;
+    border-radius: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  .stdropdown-input input {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif, "Twemoji Mozilla" !important;
+  }
+  
+  .stdropdown-flag {
+    font-family: "Twemoji Mozilla" !important;
+  }
+  
+  .stdropdown-menu::-webkit-scrollbar {
+    width: 2px;
+  }
+  
+  .stdropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  .stdropdown-menu::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+  
+  .stdropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  
+  .stdropdown-input {
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+  }
+  
+  .stdropdown-menu {
+    position: absolute;
+    transform: translateY(4px);
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: auto;
+    max-height: 150px;
+    background-color: #fff;
+    z-index: 99;
+  }
+  
+  .stdropdown-item {
+    padding: 5px;
+    cursor: pointer;
+  }
+  
+  .stdropdown-item:hover {
+    background-color: rgba(159, 195, 248, 0.4392156863);
+  }
+  
+  .stdropdown-item.selected {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+  
+  .stdropdown-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  
+  .stdropdown-tag-item {
+    background-color: #ddd;
+    padding: 2px 4px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .stdropdown-tag-close {
+    display: flex;
+    align-items: center;
+  }
+  
+  .stsearch-box {
+    padding: 5px;
+    background-color: transparent;
+  }
+  
+  .stsearch-box input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Add these media queries at the end of your CSS file */
+  @media (max-width: 767px) {
+    .stdropdown-menu {
+      top: auto !important;
+      bottom: 100% !important;
+      transform: translateY(-4px) !important;
+      box-shadow: 0 -4px 8px rgba(0,0,0,0.1) !important;
+      max-height: 200px !important;
+    }
+  
+    .stdropdown-container {
+      position: relative;
+      z-index: 1000;
+    }
+  
+    .stsearch-box input {
+      font-size: 16px; /* Fix iOS zoom issue */
+    }
+
+    stdropdown-input {
+        position: relative;
+        cursor: pointer;
+      }
+      
+      /* Make the actual input field transparent to clicks */
+      .stdropdown-input input {
+        pointer-events: none !important;
+      }
+      
+      /* Create a clickable overlay that triggers the dropdown */
+      .stdropdown-input::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+      }
+      
+      /* Keep the search box interactive when dropdown is open */
+      .stdropdown-menu .stsearch-box input {
+        pointer-events: all !important;
+      }
+      
+      /* Style the dropdown arrow to match your design */
+      .stdropdown-tools {
+        position: relative;
+        z-index: 2;
+      }
+
+      .stdropdown-item {
+        color: #000 !important;
+        background-color: #fff !important;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+      }
+    
+      .stdropdown-item.selected {
+        color: #fff !important;
+        background-color: #0d6efd !important;
+      }
+    
+      .stdropdown-input input {
+        color: #000 !important;
+        background-color: #fff !important;
+      }
+    
+      .stdropdown-menu {
+        background-color: #fff !important;
+        border: 1px solid #ccc !important;
+      }
+    
+      /* Fix emoji rendering */
+      .stdropdown-flag {
+        font-family: "Twemoji Mozilla", "Apple Color Emoji", "Segoe UI Emoji" !important;
+        font-size: 1.2em !important;
+        vertical-align: middle !important;
+      }
+
+  }
+
+  /* Force color consistency */
+@media (prefers-color-scheme: dark) {
+    .stdropdown-menu, .stdropdown-input input {
+      background-color: #fff !important;
+      color: #000 !important;
+    }
+  }

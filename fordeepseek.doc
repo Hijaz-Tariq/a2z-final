@@ -1,0 +1,1069 @@
+//middlware 
+import NextAuth from "next-auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import authConfig from "@/auth.config";
+import {
+  DEFAULT_LOGIN_REDIRECT,
+  apiAuthPrefix,
+  apiStorePrefix,
+  authRoutes,
+  publicRoutes,
+} from "@/routes";
+import { validateCartPrices } from "@/routes"; // Import the function
+import { db } from "./lib/db";
+
+interface AuthNextRequest extends NextRequest {
+  auth: any;
+}
+
+const { auth } = NextAuth(authConfig);
+
+export default auth(async (req: AuthNextRequest) => {
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
+
+  // Clone the request headers
+  const requestHeaders = new Headers(req.headers);
+
+  // Create response object
+  let response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // Check for existing guest session
+  const guestSessionCookie = req.cookies.get("guest_session_id");
+  if (!guestSessionCookie) {
+    const guestSessionId = uuidv4();
+    response = NextResponse.next();
+    response.cookies.set({
+      name: "guest_session_id",
+      value: guestSessionId,
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: "/",
+    });
+
+    // Also set it on the request for immediate use
+    requestHeaders.set("x-guest-session-id", guestSessionId);
+  }
+
+  // Existing route handling logic
+  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+  const isApiStoreRoute = apiStorePrefix.some((prefix) =>
+    nextUrl.pathname.toLowerCase().startsWith(prefix.toLowerCase())
+  );
+  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+
+  if (isApiAuthRoute || isApiStoreRoute) {
+    return response;
+  }
+
+  if (isAuthRoute) {
+    if (isLoggedIn) {
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+    }
+    return response;
+  }
+
+  if (!isLoggedIn && !isPublicRoute) {
+    let callbackUrl = nextUrl.pathname;
+    if (nextUrl.search) {
+      callbackUrl += nextUrl.search;
+    }
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    return NextResponse.redirect(
+      new URL(`/auth/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
+    );
+  }
+
+  // Validate cart prices for authenticated users on relevant routes
+  if (isLoggedIn && !isApiAuthRoute && !isApiStoreRoute && !isAuthRoute) {
+    try {
+      await validateCartPrices(req.auth.user.id);
+    } catch (error) {
+      console.error("Error validating cart prices:", error);
+      // Continue with the response even if validation fails
+    }
+  }
+
+  return response;
+});
+
+export const config = {
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+};
+
+// hooks/useCart.ts - Improved version
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { Cart } from "@/types/cart"; // Adjust import path as needed
+
+export const useCart = () => {
+  const { data: session } = useSession();
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCart = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/cart");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Expected JSON but got: ${text.substring(0, 100)}`);
+      }
+
+      const data = await response.json();
+      setCart(data);
+      if (data.mergedCart) {
+        setCart(data.mergedCart);
+        localStorage.removeItem("guest_session_id");
+      } else {
+        setCart(data);
+      }
+    } catch (error) {
+      console.error("Cart fetch error:", error);
+      setCart(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.user]);
+
+    const addToCart = async (productId: string, quantity: number = 1) => {
+    try {
+      const response = await fetch("/api/cart/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ productId, quantity }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const updatedCart = await response.json();
+      setCart(updatedCart);
+      return true;
+    } catch (error) {
+      console.error("Add to cart failed:", error);
+      return false;
+    }
+  };
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  return {
+    cart,
+    loading,
+    addToCart,
+    fetchCart,
+    isEmpty: !cart || cart.items.length === 0,
+  };
+};
+
+ // lib/auth/session.ts
+ import { db } from "@/lib/db";
+
+export async function mergeCarts(userId: string, guestSessionId: string) {
+  // 1. Find both carts
+  const [userCart, guestCart] = await Promise.all([
+    db.cart.findUnique({ where: { userId }, include: { items: true } }),
+    db.cart.findUnique({ where: { guestSessionId }, include: { items: true } })
+  ]);
+
+  if (!guestCart) return;
+
+  // 2. Move items to user's cart
+  if (userCart) {
+    await db.$transaction([
+      ...guestCart.items.map(item =>
+        db.cartItem.upsert({
+          where: { id: item.id }, // Simple approach using item ID
+          update: { cartId: userCart.id },
+          create: {
+            cartId: userCart.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            originalPrice: item.originalPrice,
+            discountPrice: item.discountPrice
+          }
+        })
+      ),
+      db.cart.delete({ where: { id: guestCart.id } })
+    ]);
+  } 
+  // 3. Or transfer entire cart
+  else {
+    await db.cart.update({
+      where: { id: guestCart.id },
+      data: { userId, guestSessionId: null }
+    });
+  }
+}
+
+// types/cart.ts
+export interface Product {
+    id: string;
+    name: string;
+    price: number;
+    discountPrice?: number;
+    // Add other product fields you need
+  }
+
+  export interface CartItem {
+    id: string;
+    productId: string;
+    quantity: number;
+    originalPrice: number;
+    discountPrice?: number;
+    priceLocked: boolean; // Add this
+    product?: Product;
+  }
+
+  export interface Cart {
+    id: string;
+    items: CartItem[];
+    createdAt?: Date;
+    updatedAt?: Date;
+  }
+
+//components/Cart.tsx
+
+  'use client';
+
+import { useState, useEffect } from 'react';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { Product } from '@prisma/client';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from '@/components/ui/dialog';
+import {
+    Drawer,
+    DrawerContent,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerFooter,
+    DrawerTrigger
+} from '@/components/ui/drawer';
+import { ShoppingCartIcon, Loader2 } from 'lucide-react';
+
+import { useCart } from '@/hooks/useCart';
+
+export function Cart() {
+
+    const [open, setOpen] = useState(false);
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+    const { cart, loading, fetchCart } = useCart();
+
+    // Fetch cart when drawer/dialog opens
+    useEffect(() => {
+        if (open) {
+            fetchCart();
+        }
+    }, [open, fetchCart]);
+
+    const getItemPrice = (item: any) => {
+        const product = item.product;
+        if (!product) return { price: 0, isOnSale: false };
+
+        const isOnSale = product.isOnSale;
+        const price = isOnSale ? product.discountPrice : product.price;
+        return { price, isOnSale };
+    };
+
+    const CartContent = () => {
+        if (loading) {
+            return (
+                <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            );
+        }
+
+        return (
+            <>
+                <div className="space-y-6 p-6">
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                        {cart?.items?.length ? (
+                            cart.items.map((item) => {
+                                const { price: itemPrice, isOnSale } = getItemPrice(item);
+                                const totalPrice = itemPrice * item.quantity;
+
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="flex items-center gap-4 p-3 border rounded-lg"
+                                    >
+                                        <div className="flex-1">
+                                            <h4 className="font-medium">{item.product?.name}</h4>
+                                            <span className={isOnSale ? "text-red-500" : "text-sm ml-2"}>
+                                                ${itemPrice} × {item.quantity}
+                                            </span>
+                                        </div>
+                                        <p className="font-medium">
+                                            <span className={isOnSale ? "text-red-500" : ""}>
+                                                ${totalPrice.toFixed(2)}
+                                            </span>
+                                        </p>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-8">
+                                <p>Your cart is empty</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Cart Summary */}
+                    {cart?.items?.length ? (
+                        <div className="space-y-2 border-t pt-4">
+                            <div className="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>
+                                    ${cart.items.reduce((sum, item) => {
+                                        const { price } = getItemPrice(item);
+                                        return sum + (price * item.quantity);
+                                    }, 0).toFixed(2)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between font-medium">
+                                <span>Total</span>
+                                <span>
+                                    ${cart.items.reduce((sum, item) => {
+                                        const { price } = getItemPrice(item);
+                                        return sum + (price * item.quantity);
+                                    }, 0).toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Checkout Button */}
+                <div className="p-4 border-t">
+                    <Button className="w-full" size="lg" disabled={!cart?.items?.length}>
+                        Proceed to Checkout
+                    </Button>
+                </div>
+            </>
+        );
+    };
+
+    if (isDesktop) {
+        return (
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="relative text-white hover:bg-primary/90"
+                    >
+                        <ShoppingCartIcon className="h-5 w-5" />
+                        {cart?.items?.length ? (
+                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+                            </span>
+                        ) : null}
+                        <span className="sr-only">Cart</span>
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Your Cart</DialogTitle>
+                    </DialogHeader>
+                    <CartContent />
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
+    return (
+        <Drawer open={open} onOpenChange={setOpen}>
+            <DrawerTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative text-white hover:bg-primary/90"
+                >
+                    <ShoppingCartIcon className="h-5 w-5" />
+                    {cart?.items?.length ? (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+                        </span>
+                    ) : null}
+                    <span className="sr-only">Cart</span>
+                </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle>Your Cart</DrawerTitle>
+                </DrawerHeader>
+                <CartContent />
+                <DrawerFooter>
+                    <Button variant="outline" onClick={() => setOpen(false)}>
+                        Continue Shopping
+                    </Button>
+                </DrawerFooter>
+            </DrawerContent>
+        </Drawer>
+
+    );
+}
+
+//api/cart/route.ts
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import db from "@/lib/prisma";
+
+function getCookie(cookies: string, name: string): string | null {
+  const value = `; ${cookies}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+  return null;
+}
+
+export async function GET(request: Request) {
+  try {
+    const session = await auth();
+    const cookies = request.headers.get("cookie") || "";
+    const guestSessionId = getCookie(cookies, "guest_session_id");
+
+    if (!session?.user?.id && !guestSessionId) {
+      return NextResponse.json({ items: [] }, { status: 200 });
+    }
+
+    const cart = await db.cart.findFirst({
+      where: {
+        OR: [
+          { userId: session?.user?.id },
+          { guestSessionId }
+        ],
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+          orderBy: {
+            addedAt: 'desc'
+          }
+        },
+      },
+    });
+
+    return NextResponse.json(cart || { items: [] }, { status: 200 });
+  } catch (error) {
+    console.error("Cart fetch error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch cart", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+//unknown the directory of this file but im sure of its name route.ts
+import { NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+
+export async function POST() {
+  try {
+    const session = await db.guestSession.create({
+      data: {
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      }
+    });
+
+    return NextResponse.json(
+      { sessionId: session.id },
+      { status: 201 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+    //   { error: 'Failed to create guest session' },
+    console.log(error, 'cant fetch session'),
+      { status: 500 }
+    );
+  }
+}
+
+// app/api/guest/cart/items/route.ts
+import { NextResponse } from "next/server";
+import db from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const { productId, quantity = 1, sessionId } = await req.json();
+
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: "Session ID required" },
+        { status: 400 }
+      );
+    }
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: "Product ID required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify session exists
+    const session = await db.guestSession.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      return NextResponse.json({ error: "Invalid session" }, { status: 404 });
+    }
+
+    // Find or create cart
+    let cart = await db.cart.findUnique({
+      where: { guestSessionId: sessionId },
+      include: { items: true },
+    });
+
+    if (!cart) {
+      cart = await db.cart.create({
+        data: { guestSessionId: sessionId },
+        include: { items: true },
+      });
+    }
+
+    // Rest of your code remains the same...
+    const product = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const existingItem = cart.items.find(
+      (item) => item.productId === productId
+    );
+
+    const updatedCart = await db.cart.update({
+  where: { id: cart.id },
+  data: {
+    items: existingItem
+      ? {
+          update: {
+            where: { id: existingItem.id },
+            data: { quantity: existingItem.quantity + quantity },
+          },
+        }
+      : {
+          create: {
+            productId,
+            quantity,
+            originalPrice: product.price, // Required field
+            product: { connect: { id: productId } }, // Required relation
+          },
+        },
+  },
+  include: {
+    items: {
+      include: {
+        product: true,
+      },
+    },
+  },
+});
+
+    return NextResponse.json({
+      success: true,
+      cart: updatedCart,
+    });
+  } catch (error: any) {
+    console.error("Error in cart API:", error);
+
+    // Handle specific database errors
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { error: "This item already exists in your cart" },
+        { status: 409 }
+      );
+    } else if (error.code === "P2025") {
+      return NextResponse.json(
+        { error: "The requested resource was not found" },
+        { status: 404 }
+      );
+    }
+
+    // Generic error fallback
+    return NextResponse.json(
+      {
+        error: "Failed to process cart request",
+        details:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+//unknown the directory of this file but im sure of its name route.ts
+
+import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { db } from '@/lib/db';
+import type { Prisma } from '@prisma/client';
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth();
+    const { 
+      email,
+      shippingAddress = {},
+      shippingCost = 0,
+      brokerId,
+      guestId 
+    } = await req.json();
+
+    // Validate required fields
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Email is required' }, 
+        { status: 400 }
+      );
+    }
+
+    // Parse cookies manually for guest sessions
+    const cookieHeader = req.headers.get('cookie') || '';
+    const guestSessionId = cookieHeader
+      .split(';')
+      .find(c => c.trim().startsWith('guest_session_id='))
+      ?.split('=')[1];
+
+    // Get cart with proper typing
+    const cart = await db.cart.findFirst({
+      where: {
+        OR: [
+          { userId: session?.user?.id },
+          { guestSessionId },
+          { guestId }
+        ].filter(Boolean) as Prisma.CartWhereInput[]
+      },
+      include: { 
+        items: {
+          include: { product: true }
+        }
+      }
+    });
+
+    if (!cart || cart.items.length === 0) {
+      return NextResponse.json(
+        { error: 'Cart is empty' },
+        { status: 400 }
+      );
+    }
+
+    // Calculate totals with proper typing
+    const subtotal = cart.items.reduce((sum, item) => {
+      const price = item.discountPrice ?? item.originalPrice;
+      return sum + (Number(price) * item.quantity);
+    }, 0);
+
+    const total = subtotal + shippingCost;
+
+    // Prepare order data with all required fields
+    const orderData: Prisma.OrderCreateInput = {
+      status: 'PENDING',
+      total,
+      shippingCost,
+      shippingAddress,
+      ...(session?.user?.id && {
+        user: { connect: { id: session.user.id } }
+      }),
+      ...(guestId && {
+        guest: { connect: { id: guestId } }
+      }),
+      ...(guestSessionId && {
+        guestSession: { connect: { id: guestSessionId } }
+      }),
+      ...(brokerId && {
+        broker: { connect: { id: brokerId } }
+      }),
+      items: {
+        create: cart.items.map(item => ({
+          product: { connect: { id: item.productId } },
+          quantity: item.quantity,
+          originalPrice: item.originalPrice,
+          discountPrice: item.discountPrice
+        }))
+      }
+    };
+
+    // Transaction with proper error handling
+    const order = await db.$transaction(async (tx) => {
+      const order = await tx.order.create({
+        data: orderData,
+        include: { items: true }
+      });
+
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id }
+      });
+
+      return order;
+    });
+
+    return NextResponse.json({ 
+      order,
+      success: true 
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error('Checkout error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process checkout' },
+      { status: 500 }
+    );
+  }
+}
+
+
+//unknown the directory of this file but im sure of its name route.ts
+import { NextResponse } from "next/server";
+import db from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+
+export async function POST(req: Request) {
+  const { productId, quantity, sessionId } = await req.json();
+
+  if (!sessionId) {
+    return NextResponse.json({ error: "Session ID required" }, { status: 400 });
+  }
+
+  try {
+    // Verify session exists
+    const session = await db.guestSession.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      return NextResponse.json({ error: "Invalid session" }, { status: 404 });
+    }
+
+    // Find or create cart
+    let cart = await db.cart.findUnique({
+      where: { guestSessionId: sessionId },
+    });
+
+    if (!cart) {
+      cart = await db.cart.create({
+        data: { guestSessionId: sessionId },
+      });
+    }
+
+    // Check if product exists
+    const product = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // Add or update cart item
+    const existingItem = await db.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        productId,
+      },
+    });
+
+    if (existingItem) {
+      await db.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: existingItem.quantity + quantity },
+      });
+    } else {
+      await db.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity,
+          originalPrice: product.price
+        } as Prisma.CartItemUncheckedCreateInput
+      });
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      console.log(error, "Failed to add to guest cart"),
+      { status: 500 }
+    );
+    console.error("Detailed error:", {
+      error,
+      sessionId,
+      productId,
+      quantity,
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
+
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import db from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth();
+    const { productId, quantity = 1 } = await req.json();
+
+    // Validate input
+    if (!productId || typeof quantity !== "number" || quantity < 1) {
+      return NextResponse.json(
+        { error: "Invalid product ID or quantity" },
+        { status: 400 }
+      );
+    }
+
+    // Get guest session ID
+    const cookies = req.headers.get("cookie") || "";
+    const guestSessionId = cookies
+      .split("; ")
+      .find(row => row.startsWith("guest_session_id="))
+      ?.split("=")[1];
+
+    // Validate authentication
+    if (!session?.user?.id && !guestSessionId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Handle guest session creation if needed
+    if (guestSessionId && !session?.user?.id) {
+      await db.guestSession.upsert({
+        where: { id: guestSessionId },
+        create: { 
+          id: guestSessionId,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+        },
+        update: {},
+      });
+    }
+
+    // Find or create cart
+    let cart = await db.cart.findFirst({
+      where: {
+        OR: [
+          ...(session?.user?.id ? [{ userId: session.user.id }] : []),
+          ...(guestSessionId ? [{ guestSessionId }] : [])
+        ],
+      },
+    });
+
+    if (!cart) {
+      cart = await db.cart.create({
+        data: {
+          ...(session?.user?.id && { userId: session.user.id }),
+          ...(guestSessionId && { guestSessionId }),
+        },
+      });
+    }
+
+    // Verify product exists
+    const product = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update or create cart item
+    const existingItem = await db.cartItem.findFirst({
+      where: { cartId: cart.id, productId },
+    });
+
+    if (existingItem) {
+      await db.cartItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: existingItem.quantity + quantity,
+          originalPrice: product.price,
+          discountPrice: product.discountPrice,
+        },
+      });
+    } else {
+      await db.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity,
+          originalPrice: product.price,
+          discountPrice: product.discountPrice,
+        },
+      });
+    }
+
+    // Return updated cart
+    const updatedCart = await db.cart.findUnique({
+      where: { id: cart.id },
+      include: { items: { include: { product: true } } },
+    });
+
+    return NextResponse.json(updatedCart);
+
+  } catch (error: any) {
+    console.error("CART ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to update cart", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+//unknown the directory of this file but im sure of its name route.ts
+
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import db from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth();
+    const { productId, quantity = 1 } = await req.json();
+
+    // Validate input
+    if (!productId || typeof quantity !== "number" || quantity < 1) {
+      return NextResponse.json(
+        { error: "Invalid product ID or quantity" },
+        { status: 400 }
+      );
+    }
+
+    // Get guest session ID
+    const cookies = req.headers.get("cookie") || "";
+    const guestSessionId = cookies
+      .split("; ")
+      .find(row => row.startsWith("guest_session_id="))
+      ?.split("=")[1];
+
+    // Validate authentication
+    if (!session?.user?.id && !guestSessionId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Handle guest session creation if needed
+    if (guestSessionId && !session?.user?.id) {
+      await db.guestSession.upsert({
+        where: { id: guestSessionId },
+        create: { 
+          id: guestSessionId,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+        },
+        update: {},
+      });
+    }
+
+    // Find or create cart
+    let cart = await db.cart.findFirst({
+      where: {
+        OR: [
+          ...(session?.user?.id ? [{ userId: session.user.id }] : []),
+          ...(guestSessionId ? [{ guestSessionId }] : [])
+        ],
+      },
+    });
+
+    if (!cart) {
+      cart = await db.cart.create({
+        data: {
+          ...(session?.user?.id && { userId: session.user.id }),
+          ...(guestSessionId && { guestSessionId }),
+        },
+      });
+    }
+
+    // Verify product exists
+    const product = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update or create cart item
+    const existingItem = await db.cartItem.findFirst({
+      where: { cartId: cart.id, productId },
+    });
+
+    if (existingItem) {
+      await db.cartItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: existingItem.quantity + quantity,
+          originalPrice: product.price,
+          discountPrice: product.discountPrice,
+        },
+      });
+    } else {
+      await db.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity,
+          originalPrice: product.price,
+          discountPrice: product.discountPrice,
+        },
+      });
+    }
+
+    // Return updated cart
+    const updatedCart = await db.cart.findUnique({
+      where: { id: cart.id },
+      include: { items: { include: { product: true } } },
+    });
+
+    return NextResponse.json(updatedCart);
+
+  } catch (error: any) {
+    console.error("CART ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to update cart", details: error.message },
+      { status: 500 }
+    );
+  }
+}s
+
