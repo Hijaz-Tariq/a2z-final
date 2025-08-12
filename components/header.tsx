@@ -256,20 +256,22 @@ import { useState } from 'react';
 import { Button } from './ui/button';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
-import { menuItems } from './menuItems';
+import { getMenuItems} from './menuItems';
 import { TrackingInput } from './track';
 import { SearchInput } from "./search";
 import { usePathname } from 'next/navigation';
 import { storeCategories } from './filterItems';
 import { Cart } from '@/store/components/Cart';
-
+import { useSession } from 'next-auth/react';
 export default function Header() {
+    const { data: session } = useSession();
+  const role = session?.user?.role;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const pathname = usePathname();
   const storeRoute = pathname.startsWith('/store');
-
+  const menuItems = getMenuItems(role);
   return (
     <>
       <header className="bg-primary text-white py-4 relative">
