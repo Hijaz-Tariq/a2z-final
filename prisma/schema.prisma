@@ -1,623 +1,3 @@
-// // generator client {
-// //   provider        = "prisma-client-js"
-// //   previewFeatures = ["postgresqlExtensions"]
-// // }
-
-// // datasource db {
-// //   provider   = "postgresql"
-// //   url        = env("DATABASE_URL")
-// //   extensions = [pgcrypto]
-// // }
-
-// // model User {
-// //   id                    String                 @id @default(uuid()) @db.Uuid
-// //   name                  String?
-// //   email                 String?                @unique @db.VarChar(255)
-// //   emailVerified         DateTime?
-// //   image                 String?
-// //   password              String?
-// //   role                  Role                   @default(GUEST)
-// //   isTwoFactorEnabled    Boolean                @default(false)
-// //   createdAt             DateTime               @default(now()) @db.Timestamptz(6)
-// //   updatedAt             DateTime               @updatedAt @db.Timestamptz(6)
-// //   Account               Account[]
-// //   agentProfile          AgentProfile?
-// //   brokerProfile         BrokerProfile?
-// //   cart                  Cart?
-// //   Comment               Comment[]
-// //   guestSessions         GuestSession[]
-// //   orders                Order[]
-// //   Rating                Rating[]
-// //   TwoFactorConfirmation TwoFactorConfirmation?
-// //   PickupToUser          PickupToUser[]
-// //   Pickup                Pickup?                @relation(fields: [pickupId], references: [id])
-// //   pickupId              String?                @db.Uuid
-
-// //   @@index([email], map: "user_email_idx")
-// //   @@index([role], map: "user_role_idx")
-// // }
-
-// // model GuestCheckout {
-// //   id                    String                  @id @default(uuid()) @db.Uuid
-// //   email                 String                  @db.VarChar(255)
-// //   phone                 String?                 @db.VarChar(20)
-// //   createdAt             DateTime                @default(now()) @db.Timestamptz(6)
-// //   orders                Order[]
-// //   GuestCheckoutToPickup GuestCheckoutToPickup[]
-// //   Pickup                Pickup?                 @relation(fields: [pickupId], references: [id])
-// //   pickupId              String?                 @db.Uuid
-
-// //   @@index([email], map: "guest_email_idx")
-// // }
-
-// // model GuestSession {
-// //   id                   String                 @id @default(uuid()) @db.Uuid
-// //   sessionToken         String                 @unique @default(cuid()) @db.VarChar(255)
-// //   userId               String?                @db.Uuid
-// //   createdAt            DateTime               @default(now()) @db.Timestamptz(6)
-// //   expiresAt            DateTime               @db.Timestamptz(6)
-// //   cart                 Cart?
-// //   user                 User?                  @relation(fields: [userId], references: [id])
-// //   orders               Order[]
-// //   GuestSessionToPickup GuestSessionToPickup[]
-// //   Pickup               Pickup?                @relation(fields: [pickupId], references: [id])
-// //   pickupId             String?                @db.Uuid
-
-// //   @@index([sessionToken], map: "guest_session_token_idx")
-// // }
-
-// // model Cart {
-// //   id             String        @id @default(uuid()) @db.Uuid
-// //   createdAt      DateTime      @default(now()) @db.Timestamptz(6)
-// //   updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
-// //   userId         String?       @unique @db.Uuid
-// //   guestSessionId String?       @unique @db.Uuid
-// //   guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id])
-// //   user           User?         @relation(fields: [userId], references: [id])
-// //   items          CartItem[]
-// // }
-
-// // model CartItem {
-// //   id            String   @id @default(uuid()) @db.Uuid
-// //   cartId        String   @db.Uuid
-// //   productId     String   @db.Uuid
-// //   quantity      Int      @default(1)
-// //   originalPrice Decimal
-// //   discountPrice Decimal?
-// //   addedAt       DateTime @default(now()) @db.Timestamptz(6)
-// //   cart          Cart     @relation(fields: [cartId], references: [id])
-// //   product       Product  @relation(fields: [productId], references: [id])
-
-// //   @@index([cartId], map: "cart_item_cart_idx")
-// //   @@index([productId], map: "cart_item_product_idx")
-// // }
-
-// // model Category {
-// //   id          String    @id @default(cuid())
-// //   name        String
-// //   description String?
-// //   slug        String    @unique
-// //   mainImage   String?   @db.VarChar(255)
-// //   icon        String?
-// //   createdAt   DateTime  @default(now())
-// //   updatedAt   DateTime  @updatedAt
-// //   products    Product[]
-// // }
-
-// // model SpecialCard {
-// //   id        String   @id @default(cuid())
-// //   name      String
-// //   slug      String   @unique
-// //   mainImage String?  @db.VarChar(255)
-// //   images    String[]
-// // }
-
-// // model Product {
-// //   id            String      @id @default(uuid()) @db.Uuid
-// //   name          String      @db.VarChar(255)
-// //   price         Decimal     @db.Decimal(10, 2)
-// //   categoryId    String
-// //   description   String
-// //   discountPrice Decimal?    @db.Decimal(10, 2)
-// //   isOnSale      Boolean     @default(false)
-// //   saleEndsAt    DateTime?
-// //   weight        Float?
-// //   dimensions    String?     @db.VarChar(50)
-// //   isAvailable   Boolean     @default(true)
-// //   sku           String?     @unique @db.VarChar(100)
-// //   searchVector  String?
-// //   mainImage     String      @db.VarChar(255)
-// //   images        String[]
-// //   serviceType   String?     @db.VarChar(50)
-// //   features      Json?
-// //   averageRating Float?      @default(0.0)
-// //   createdAt     DateTime    @default(now()) @db.Timestamptz(6)
-// //   updatedAt     DateTime    @updatedAt @db.Timestamptz(6)
-// //   cartItems     CartItem[]
-// //   comments      Comment[]
-// //   orderItems    OrderItem[]
-// //   category      Category    @relation(fields: [categoryId], references: [id])
-// //   ratings       Rating[]
-
-// //   @@index([name], map: "product_name_idx")
-// //   @@index([averageRating], map: "product_rating_idx")
-// // }
-
-// // model Rating {
-// //   id        String   @id @default(uuid()) @db.Uuid
-// //   value     Int      @default(0)
-// //   productId String   @db.Uuid
-// //   userId    String   @db.Uuid
-// //   createdAt DateTime @default(now()) @db.Timestamptz(6)
-// //   product   Product  @relation(fields: [productId], references: [id])
-// //   user      User     @relation(fields: [userId], references: [id])
-
-// //   @@unique([userId, productId], name: "user_product_rating_unique")
-// // }
-
-// // model Comment {
-// //   id        String   @id @default(uuid()) @db.Uuid
-// //   content   String
-// //   productId String   @db.Uuid
-// //   userId    String   @db.Uuid
-// //   createdAt DateTime @default(now()) @db.Timestamptz(6)
-// //   updatedAt DateTime @updatedAt @db.Timestamptz(6)
-// //   product   Product  @relation(fields: [productId], references: [id])
-// //   user      User     @relation(fields: [userId], references: [id])
-
-// //   @@index([productId], map: "comment_product_idx")
-// //   @@index([userId], map: "comment_user_idx")
-// // }
-
-// // model Order {
-// //   id              String            @id @default(uuid()) @db.Uuid
-// //   status          OrderStatus       @default(PENDING)
-// //   total           Float
-// //   shippingCost    Float
-// //   trackingNumber  String?           @db.VarChar(100)
-// //   shippingAddress Json
-// //   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-// //   updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
-// //   userId          String?           @db.Uuid
-// //   guestId         String?           @db.Uuid
-// //   brokerId        String?           @db.Uuid
-// //   guestSessionId  String?           @db.Uuid
-// //   broker          BrokerProfile?    @relation(fields: [brokerId], references: [id])
-// //   guest           GuestCheckout?    @relation(fields: [guestId], references: [id])
-// //   guestSession    GuestSession?     @relation(fields: [guestSessionId], references: [id])
-// //   user            User?             @relation(fields: [userId], references: [id])
-// //   items           OrderItem[]
-// //   tracking        ShippingTracking?
-
-// //   @@index([userId], map: "order_user_idx")
-// //   @@index([guestId], map: "order_guest_idx")
-// //   @@index([brokerId], map: "order_broker_idx")
-// //   @@index([guestSessionId], map: "order_guest_session_idx")
-// //   @@index([status], map: "order_status_idx")
-// //   @@index([createdAt], map: "order_created_at_idx")
-// // }
-
-// // model OrderItem {
-// //   id            String   @id @default(uuid()) @db.Uuid
-// //   orderId       String   @db.Uuid
-// //   productId     String   @db.Uuid
-// //   quantity      Int      @default(1)
-// //   originalPrice Decimal
-// //   discountPrice Decimal?
-// //   createdAt     DateTime @default(now()) @db.Timestamptz(6)
-// //   order         Order    @relation(fields: [orderId], references: [id])
-// //   product       Product  @relation(fields: [productId], references: [id])
-
-// //   @@index([orderId], map: "order_item_order_idx")
-// //   @@index([productId], map: "order_item_product_idx")
-// // }
-
-// // // model Pickup {
-// // //   id                                              String                  @id @default(uuid()) @db.Uuid
-// // //   type                                            PickupType              @default(OUTBOUND_SHIPMENT)
-// // //   scheduledDate                                   DateTime
-// // //   timeWindow                                      String?
-// // //   specialNotes                                    String?
-// // //   totalWeight                                     Float?
-// // //   weightUnit                                      String?                 @default("kg")
-// // //   packageCount                                    Int?
-// // //   itemsDescription                                String?
-// // //   pickupWarehouseId                               String?                 @db.Uuid
-// // //   customPickupAddressId                           String?                 @db.Uuid
-// // //   pickupContactId                                 String                  @db.Uuid
-// // //   deliveryWarehouseId                             String?                 @db.Uuid
-// // //   customDeliveryAddressId                         String?                 @db.Uuid
-// // //   deliveryContactId                               String?                 @db.Uuid
-// // //   status                                          PickupStatus            @default(PENDING)
-// // //   createdAt                                       DateTime                @default(now())
-// // //   calculatedCost                                  Float?
-// // //   commercialDocuments                             Json?
-// // //   costCurrency                                    String?                 @default("USD")
-// // //   storageFeeAcknowledged                          Boolean                 @default(false)
-// // //   Address_Pickup_customDeliveryAddressIdToAddress Address?                @relation("Pickup_customDeliveryAddressIdToAddress", fields: [customDeliveryAddressId], references: [id])
-// // //   Address_Pickup_customPickupAddressIdToAddress   Address?                @relation("Pickup_customPickupAddressIdToAddress", fields: [customPickupAddressId], references: [id])
-// // //   Contact_Pickup_deliveryContactIdToContact       Contact?                @relation("Pickup_deliveryContactIdToContact", fields: [deliveryContactId], references: [id])
-// // //   Warehouse_Pickup_deliveryWarehouseIdToWarehouse Warehouse?              @relation("Pickup_deliveryWarehouseIdToWarehouse", fields: [deliveryWarehouseId], references: [id])
-// // //   Contact_Pickup_pickupContactIdToContact         Contact                 @relation("Pickup_pickupContactIdToContact", fields: [pickupContactId], references: [id])
-// // //   Warehouse_Pickup_pickupWarehouseIdToWarehouse   Warehouse?              @relation("Pickup_pickupWarehouseIdToWarehouse", fields: [pickupWarehouseId], references: [id])
-// // //   PickupItem                                      PickupItem[]
-// // //   PickupPackage                                   PickupPackage[]
-// // //   tracking                                        ShippingTracking?
-// // //   BrokerProfileToPickup                           BrokerProfileToPickup[]
-// // //   GuestCheckoutToPickup                           GuestCheckoutToPickup[]
-// // //   GuestSessionToPickup                            GuestSessionToPickup[]
-// // //   PickupToUser                                    PickupToUser[]
-// // // }
-
-// // model Pickup {
-// //   id            String     @id @default(uuid()) @db.Uuid
-// //   type          PickupType @default(OUTBOUND_SHIPMENT)
-// //   scheduledDate DateTime
-// //   timeWindow    String? // "9AM-12PM", "Afternoon", etc.
-// //   specialNotes  String? // "Fragile items", "Gate code 1234"
-
-// //   // Weight/Dimensions
-// //   totalWeight      Float?
-// //   weightUnit       String? @default("kg")
-// //   packageCount     Int?
-// //   itemsDescription String? // "3 boxes of electronics"
-
-// //   // Pickup Origin
-// //   pickupWarehouse       Warehouse? @relation("PickupOrigin", fields: [pickupWarehouseId], references: [id])
-// //   pickupWarehouseId     String?    @db.Uuid
-// //   customPickupAddress   Address?   @relation("CustomPickupOrigin", fields: [customPickupAddressId], references: [id])
-// //   customPickupAddressId String?    @db.Uuid
-// //   pickupContact         Contact    @relation("PickupContact", fields: [pickupContactId], references: [id])
-// //   pickupContactId       String     @db.Uuid
-
-// //   // Delivery Destination
-// //   deliveryWarehouse       Warehouse? @relation("DeliveryDestination", fields: [deliveryWarehouseId], references: [id])
-// //   deliveryWarehouseId     String?    @db.Uuid
-// //   customDeliveryAddress   Address?   @relation("CustomDeliveryDestination", fields: [customDeliveryAddressId], references: [id])
-// //   customDeliveryAddressId String?    @db.Uuid
-// //   deliveryContact         Contact?   @relation("DeliveryContact", fields: [deliveryContactId], references: [id])
-// //   deliveryContactId       String?    @db.Uuid
-
-// //   // contains
-// //   items                  PickupItem[]
-// //   packages               PickupPackage[]
-// //   storageFeeAcknowledged Boolean         @default(false)
-// //   calculatedCost         Float?
-// //   costCurrency           String?         @default("USD")
-// //   commercialDocuments    Json?
-
-// //   // Other fields
-// //   status    PickupStatus @default(PENDING)
-// //   createdAt DateTime     @default(now())
-
-// //   User User[]
-
-// //   GuestCheckout GuestCheckout[]
-
-// //   GuestSession GuestSession[]
-
-// //   ShippingTracking ShippingTracking[]
-
-// //   BrokerProfile         BrokerProfile[]
-// //   Address               Address?                @relation(fields: [addressId], references: [id])
-// //   addressId             String?                 @db.Uuid
-// //   // Address               Address?                @relation(fields: [addressId], references: [id])
-// //   // addressId             String?                 @db.Uuid
-// //   Contact               Contact?                @relation(fields: [contactId], references: [id])
-// //   contactId             String?                 @db.Uuid
-// //   // Contact               Contact?                @relation(fields: [contactId], references: [id])
-// //   // contactId             String?                 @db.Uuid
-// //   Warehouse             Warehouse?              @relation(fields: [warehouseId], references: [id])
-// //   warehouseId           String?                 @db.Uuid
-// //   // Warehouse             Warehouse?              @relation(fields: [warehouseId], references: [id])
-// //   // warehouseId           String?                 @db.Uuid
-// //   BrokerProfileToPickup BrokerProfileToPickup[]
-// //   GuestCheckoutToPickup GuestCheckoutToPickup[]
-// //   GuestSessionToPickup  GuestSessionToPickup[]
-// //   PickupToUser          PickupToUser[]
-// // }
-
-// // model ShippingTracking {
-// //   id                String          @id @default(uuid()) @db.Uuid
-// //   trackingNumber    String          @unique @db.VarChar(100)
-// //   carrier           String          @db.VarChar(100)
-// //   status            ShippingStatus  @default(PENDING)
-// //   estimatedDelivery DateTime?       @db.Timestamptz(6)
-// //   createdAt         DateTime        @default(now()) @db.Timestamptz(6)
-// //   updatedAt         DateTime        @updatedAt @db.Timestamptz(6)
-// //   orderId           String?         @unique @db.Uuid
-// //   pickupId          String?         @unique @db.Uuid
-// //   order             Order?          @relation(fields: [orderId], references: [id])
-// //   pickup            Pickup?         @relation(fields: [pickupId], references: [id])
-// //   events            TrackingEvent[]
-
-// //   @@index([orderId], map: "tracking_order_idx")
-// //   @@index([pickupId], map: "tracking_pickup_idx")
-// //   @@index([status], map: "tracking_status_idx")
-// // }
-
-// // model TrackingEvent {
-// //   id         String           @id @default(uuid()) @db.Uuid
-// //   trackingId String           @db.Uuid
-// //   eventType  String           @db.VarChar(100)
-// //   location   String?          @db.VarChar(255)
-// //   details    String?
-// //   occurredAt DateTime         @default(now()) @db.Timestamptz(6)
-// //   tracking   ShippingTracking @relation(fields: [trackingId], references: [id])
-
-// //   @@index([trackingId], map: "event_tracking_idx")
-// //   @@index([occurredAt], map: "event_time_idx")
-// // }
-
-// // model AgentProfile {
-// //   id            String   @id @default(uuid()) @db.Uuid
-// //   companyName   String?  @db.VarChar(255)
-// //   licenseNumber String?  @db.VarChar(100)
-// //   contactPhone  String   @db.VarChar(20)
-// //   locations     Json?
-// //   rating        Float?
-// //   bio           String?
-// //   isVerified    Boolean  @default(false)
-// //   createdAt     DateTime @default(now()) @db.Timestamptz(6)
-// //   userId        String   @unique @db.Uuid
-// //   user          User     @relation(fields: [userId], references: [id])
-
-// //   @@index([userId], map: "agent_user_idx")
-// //   @@index([isVerified], map: "agent_verified_idx")
-// // }
-
-// // model BrokerProfile {
-// //   id                    String                  @id @default(uuid()) @db.Uuid
-// //   companyName           String                  @db.VarChar(255)
-// //   licenseNumber         String                  @db.VarChar(100)
-// //   contactPhone          String                  @db.VarChar(20)
-// //   services              Json?
-// //   coverage              Json?
-// //   rating                Float?
-// //   isVerified            Boolean                 @default(false)
-// //   createdAt             DateTime                @default(now()) @db.Timestamptz(6)
-// //   updatedAt             DateTime                @updatedAt @db.Timestamptz(6)
-// //   userId                String                  @unique @db.Uuid
-// //   user                  User                    @relation(fields: [userId], references: [id])
-// //   orders                Order[]
-// //   BrokerProfileToPickup BrokerProfileToPickup[]
-// //   Pickup                Pickup?                 @relation(fields: [pickupId], references: [id])
-// //   pickupId              String?                 @db.Uuid
-
-// //   @@index([userId], map: "broker_user_idx")
-// //   @@index([isVerified], map: "broker_verified_idx")
-// //   @@index([rating], map: "broker_rating_idx")
-// // }
-
-// // model Account {
-// //   id                String  @id @db.Uuid
-// //   userId            String  @db.Uuid
-// //   type              String
-// //   provider          String
-// //   providerAccountId String
-// //   refresh_token     String?
-// //   access_token      String?
-// //   expires_at        Int?
-// //   token_type        String?
-// //   scope             String?
-// //   id_token          String?
-// //   session_state     String?
-// //   User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-// //   @@unique([provider, providerAccountId])
-// // }
-
-// // model Address {
-// //   id                                             String      @id @db.Uuid
-// //   line1                                          String
-// //   line2                                          String?
-// //   city                                           String
-// //   state                                          String
-// //   postalCode                                     String
-// //   country                                        String      @default("US")
-// //   coordinates                                    Json?
-// //   Pickup_Pickup_customDeliveryAddressIdToAddress Pickup[]    @relation("Pickup_customDeliveryAddressIdToAddress")
-// //   Pickup_Pickup_customPickupAddressIdToAddress   Pickup[]    @relation("Pickup_customPickupAddressIdToAddress")
-// //   Warehouse                                      Warehouse[]
-// //   Pickup                                         Pickup[]
-// //   // Pickup                                         Pickup[]
-// // }
-
-// // model Contact {
-// //   id                                       String   @id @db.Uuid
-// //   name                                     String
-// //   phone                                    String   @db.VarChar(20)
-// //   email                                    String?  @db.VarChar(255)
-// //   company                                  String?
-// //   Pickup_Pickup_deliveryContactIdToContact Pickup[] @relation("Pickup_deliveryContactIdToContact")
-// //   Pickup_Pickup_pickupContactIdToContact   Pickup[] @relation("Pickup_pickupContactIdToContact")
-// //   Pickup                                   Pickup[]
-// //   // Pickup                                   Pickup[]
-// // }
-
-// // model PasswordResetToken {
-// //   id      String   @id
-// //   email   String
-// //   token   String   @unique
-// //   expires DateTime
-
-// //   @@unique([email, token])
-// // }
-
-// // model PickupItem {
-// //   description String
-// //   quantity    Int     @default(1)
-// //   value       Float
-// //   currency    String  @default("USD")
-// //   hsCode      String?
-// //   weight      Float?
-// //   dimensions  Json?
-// //   id          String  @id @db.Uuid
-// //   pickupId    String  @db.Uuid
-// //   Pickup      Pickup  @relation(fields: [pickupId], references: [id])
-// // }
-
-// // model PickupPackage {
-// //   packageType  String   @default("parcel")
-// //   weight       Float
-// //   length       Float?
-// //   width        Float?
-// //   height       Float?
-// //   specialNotes String?
-// //   itemIds      String[]
-// //   id           String   @id @db.Uuid
-// //   pickupId     String   @db.Uuid
-// //   Pickup       Pickup   @relation(fields: [pickupId], references: [id])
-// // }
-
-// // model TwoFactorConfirmation {
-// //   id     String @id
-// //   userId String @unique @db.Uuid
-// //   User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-// // }
-
-// // model TwoFactorToken {
-// //   id      String   @id @db.Uuid
-// //   email   String
-// //   token   String   @unique
-// //   expires DateTime
-
-// //   @@unique([email, token])
-// // }
-
-// // model VerificationToken {
-// //   id      String   @id
-// //   email   String
-// //   token   String   @unique
-// //   expires DateTime
-
-// //   @@unique([email, token])
-// // }
-
-// // model Warehouse {
-// //   id                                           String   @id @db.Uuid
-// //   name                                         String
-// //   addressId                                    String   @db.Uuid
-// //   Pickup_Pickup_deliveryWarehouseIdToWarehouse Pickup[] @relation("Pickup_deliveryWarehouseIdToWarehouse")
-// //   Pickup_Pickup_pickupWarehouseIdToWarehouse   Pickup[] @relation("Pickup_pickupWarehouseIdToWarehouse")
-// //   Address                                      Address  @relation(fields: [addressId], references: [id])
-// //   Pickup                                       Pickup[]
-// //   // Pickup                                       Pickup[]
-// // }
-
-// // model Wishlist {
-// //   id             String         @id
-// //   userId         String?        @unique
-// //   guestSessionId String?        @unique
-// //   createdAt      DateTime       @default(now())
-// //   updatedAt      DateTime
-// //   WishlistItem   WishlistItem[]
-// // }
-
-// // model WishlistItem {
-// //   id            String   @id
-// //   productId     String
-// //   originalPrice Decimal
-// //   discountPrice Decimal?
-// //   wishlistId    String
-// //   createdAt     DateTime @default(now())
-// //   Wishlist      Wishlist @relation(fields: [wishlistId], references: [id])
-// // }
-
-// // model BrokerProfileToPickup {
-// //   A             String        @db.Uuid
-// //   B             String        @db.Uuid
-// //   BrokerProfile BrokerProfile @relation(fields: [A], references: [id], onDelete: Cascade)
-// //   Pickup        Pickup        @relation(fields: [B], references: [id], onDelete: Cascade)
-
-// //   @@id([A, B], map: "_BrokerProfileToPickup_AB_pkey")
-// //   @@index([B], map: "_BrokerProfileToPickup_B_index")
-// //   @@map("_BrokerProfileToPickup")
-// // }
-
-// // model GuestCheckoutToPickup {
-// //   A             String        @db.Uuid
-// //   B             String        @db.Uuid
-// //   GuestCheckout GuestCheckout @relation(fields: [A], references: [id], onDelete: Cascade)
-// //   Pickup        Pickup        @relation(fields: [B], references: [id], onDelete: Cascade)
-
-// //   @@id([A, B], map: "_GuestCheckoutToPickup_AB_pkey")
-// //   @@index([B], map: "_GuestCheckoutToPickup_B_index")
-// //   @@map("_GuestCheckoutToPickup")
-// // }
-
-// // model GuestSessionToPickup {
-// //   A            String       @db.Uuid
-// //   B            String       @db.Uuid
-// //   GuestSession GuestSession @relation(fields: [A], references: [id], onDelete: Cascade)
-// //   Pickup       Pickup       @relation(fields: [B], references: [id], onDelete: Cascade)
-
-// //   @@id([A, B], map: "_GuestSessionToPickup_AB_pkey")
-// //   @@index([B], map: "_GuestSessionToPickup_B_index")
-// //   @@map("_GuestSessionToPickup")
-// // }
-
-// // model PickupToUser {
-// //   A      String @db.Uuid
-// //   B      String @db.Uuid
-// //   Pickup Pickup @relation(fields: [A], references: [id], onDelete: Cascade)
-// //   User   User   @relation(fields: [B], references: [id], onDelete: Cascade)
-
-// //   @@id([A, B], map: "_PickupToUser_AB_pkey")
-// //   @@index([B], map: "_PickupToUser_B_index")
-// //   @@map("_PickupToUser")
-// // }
-
-// // enum ShippingStatus {
-// //   PENDING
-// //   PROCESSING
-// //   IN_TRANSIT
-// //   OUT_FOR_DELIVERY
-// //   DELIVERED
-// //   RETURNED
-// //   FAILED_ATTEMPT
-// //   CUSTOMS_HOLD
-// // }
-
-// // enum Role {
-// //   GUEST
-// //   CUSTOMER
-// //   AGENT
-// //   BROKER
-// //   ADMIN
-// // }
-
-// // enum OrderStatus {
-// //   PENDING
-// //   PROCESSING
-// //   SHIPPED
-// //   DELIVERED
-// //   CANCELLED
-// //   RETURNED
-// // }
-
-// // enum PickupStatus {
-// //   PENDING
-// //   SCHEDULED
-// //   COMPLETED
-// //   CANCELLED
-// // }
-
-// // enum PickupType {
-// //   WAREHOUSE_TRANSFER
-// //   OUTBOUND_SHIPMENT
-// //   INBOUND_RETURN
-// //   BUSINESS_PICKUP
-// //   RESIDENTIAL_PICKUP
-// // }
-
-// //*******************7/13 11:02*/
-
-// // generator client {
-// //   provider        = "prisma-client-js"
-// //   previewFeatures = ["postgresqlExtensions", "fullTextSearchPostgres"]
-// // }
-
 // generator client {
 //   provider        = "prisma-client-js"
 //   previewFeatures = ["postgresqlExtensions"]
@@ -627,6 +7,484 @@
 //   provider   = "postgresql"
 //   url        = env("DATABASE_URL")
 //   extensions = [pgcrypto]
+// }
+
+// model User {
+//   id                    String                 @id @default(uuid()) @db.Uuid
+//   name                  String?
+//   email                 String?                @unique @db.VarChar(255)
+//   emailVerified         DateTime?
+//   image                 String?
+//   password              String?
+//   role                  Role                   @default(GUEST)
+//   isTwoFactorEnabled    Boolean                @default(false)
+//   createdAt             DateTime               @default(now()) @db.Timestamptz(6)
+//   updatedAt             DateTime               @updatedAt @db.Timestamptz(6)
+//   accounts              Account[]
+//   agentProfile          AgentProfile?
+//   brokerProfile         BrokerProfile?
+//   cart                  Cart?
+//   Comment               Comment[]
+//   guestSessions         GuestSession[]
+//   orders                Order[]
+//   Rating                Rating[]
+//   twoFactorConfirmation TwoFactorConfirmation?
+//   PickupToUser          PickupToUser[]
+
+//   @@index([email], map: "user_email_idx")
+//   @@index([role], map: "user_role_idx")
+// }
+
+// model Account {
+//   id                String  @id @default(uuid()) @db.Uuid
+//   userId            String  @db.Uuid
+//   type              String
+//   provider          String
+//   providerAccountId String
+//   refresh_token     String?
+//   access_token      String?
+//   expires_at        Int?
+//   token_type        String?
+//   scope             String?
+//   id_token          String?
+//   session_state     String?
+//   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@unique([provider, providerAccountId])
+// }
+
+// model VerificationToken {
+//   id      String   @id @default(uuid())
+//   email   String
+//   token   String   @unique
+//   expires DateTime
+
+//   @@unique([email, token])
+// }
+
+// model PasswordResetToken {
+//   id      String   @id @default(uuid())
+//   email   String
+//   token   String   @unique
+//   expires DateTime
+
+//   @@unique([email, token])
+// }
+
+// model TwoFactorToken {
+//   id      String   @id @default(uuid()) @db.Uuid
+//   email   String
+//   token   String   @unique
+//   expires DateTime
+
+//   @@unique([email, token])
+// }
+
+// model TwoFactorConfirmation {
+//   id     String @id @default(uuid())
+//   userId String @unique @db.Uuid
+//   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// model GuestCheckout {
+//   id                    String                  @id @default(uuid()) @db.Uuid
+//   email                 String                  @db.VarChar(255)
+//   phone                 String?                 @db.VarChar(20)
+//   createdAt             DateTime                @default(now()) @db.Timestamptz(6)
+//   orders                Order[]
+//   GuestCheckoutToPickup GuestCheckoutToPickup[]
+
+//   @@index([email], map: "guest_email_idx")
+// }
+
+// model GuestSession {
+//   id                   String                 @id @default(uuid()) @db.Uuid
+//   sessionToken         String                 @unique @default(uuid()) @db.VarChar(255)
+//   userId               String?                @db.Uuid
+//   createdAt            DateTime               @default(now()) @db.Timestamptz(6)
+//   expiresAt            DateTime               @db.Timestamptz(6)
+//   cart                 Cart?
+//   user                 User?                  @relation(fields: [userId], references: [id])
+//   orders               Order[]
+//   GuestSessionToPickup GuestSessionToPickup[]
+
+//   @@index([sessionToken], map: "guest_session_token_idx")
+// }
+
+// model Cart {
+//   id             String        @id @default(uuid()) @db.Uuid
+//   createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+//   updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
+//   userId         String?       @unique @db.Uuid
+//   guestSessionId String?       @unique @db.Uuid
+//   guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id])
+//   user           User?         @relation(fields: [userId], references: [id])
+//   items          CartItem[]
+// }
+
+// model CartItem {
+//   id            String   @id @default(uuid()) @db.Uuid
+//   cartId        String   @db.Uuid
+//   productId     String   @db.Uuid
+//   quantity      Int      @default(1)
+//   originalPrice Decimal
+//   discountPrice Decimal?
+//   addedAt       DateTime @default(now()) @db.Timestamptz(6)
+//   cart          Cart     @relation(fields: [cartId], references: [id])
+//   product       Product  @relation(fields: [productId], references: [id])
+
+//   @@index([cartId], map: "cart_item_cart_idx")
+//   @@index([productId], map: "cart_item_product_idx")
+// }
+
+// model Wishlist {
+//   id             String         @id @default(uuid())
+//   userId         String?        @unique
+//   guestSessionId String?        @unique
+//   createdAt      DateTime       @default(now())
+//   updatedAt      DateTime       @updatedAt
+//   items          WishlistItem[]
+// }
+
+// model WishlistItem {
+//   id            String   @id @default(uuid())
+//   productId     String
+//   originalPrice Decimal
+//   discountPrice Decimal?
+//   wishlistId    String
+//   createdAt     DateTime @default(now())
+//   wishlist      Wishlist @relation(fields: [wishlistId], references: [id])
+// }
+
+// model Category {
+//   id          String    @id @default(uuid())
+//   name        String
+//   description String?
+//   slug        String    @unique
+//   mainImage   String?   @db.VarChar(255)
+//   icon        String?
+//   createdAt   DateTime  @default(now())
+//   updatedAt   DateTime  @updatedAt
+//   products    Product[]
+// }
+
+// model SpecialCard {
+//   id        String   @id @default(uuid())
+//   name      String
+//   slug      String   @unique
+//   mainImage String?  @db.VarChar(255)
+//   images    String[]
+// }
+
+// model Product {
+//   id            String      @id @default(uuid()) @db.Uuid
+//   name          String      @db.VarChar(255)
+//   price         Decimal     @db.Decimal(10, 2)
+//   categoryId    String
+//   description   String
+//   discountPrice Decimal?    @db.Decimal(10, 2)
+//   isOnSale      Boolean     @default(false)
+//   saleEndsAt    DateTime?
+//   weight        Float?
+//   dimensions    String?     @db.VarChar(50)
+//   isAvailable   Boolean     @default(true)
+//   sku           String?     @unique @db.VarChar(100)
+//   stock         Int         @default(0)
+//   searchVector  String?
+//   mainImage     String      @db.VarChar(255)
+//   images        String[]
+//   serviceType   String?     @db.VarChar(50)
+//   features      Json?
+//   averageRating Float?      @default(0.0)
+//   createdAt     DateTime    @default(now()) @db.Timestamptz(6)
+//   updatedAt     DateTime    @updatedAt @db.Timestamptz(6)
+//   cartItems     CartItem[]
+//   comments      Comment[]
+//   orderItems    OrderItem[]
+//   category      Category    @relation(fields: [categoryId], references: [id])
+//   ratings       Rating[]
+
+//   @@index([name], map: "product_name_idx")
+//   @@index([averageRating], map: "product_rating_idx")
+// }
+
+// model Rating {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   value     Int      @default(0)
+//   productId String   @db.Uuid
+//   userId    String   @db.Uuid
+//   createdAt DateTime @default(now()) @db.Timestamptz(6)
+//   product   Product  @relation(fields: [productId], references: [id])
+//   user      User     @relation(fields: [userId], references: [id])
+
+//   @@unique([userId, productId], name: "user_product_rating_unique")
+// }
+
+// model Comment {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   content   String
+//   productId String   @db.Uuid
+//   userId    String   @db.Uuid
+//   createdAt DateTime @default(now()) @db.Timestamptz(6)
+//   updatedAt DateTime @updatedAt @db.Timestamptz(6)
+//   product   Product  @relation(fields: [productId], references: [id])
+//   user      User     @relation(fields: [userId], references: [id])
+
+//   @@index([productId], map: "comment_product_idx")
+//   @@index([userId], map: "comment_user_idx")
+// }
+
+// model Order {
+//   id              String            @id @default(uuid()) @db.Uuid
+//   status          OrderStatus       @default(PENDING)
+//   total           Float
+//   shippingCost    Float
+//   trackingNumber  String?           @db.VarChar(100)
+//   shippingAddress Json
+//   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+//   updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
+//   userId          String?           @db.Uuid
+//   guestId         String?           @db.Uuid
+//   brokerId        String?           @db.Uuid
+//   guestSessionId  String?           @db.Uuid
+//   broker          BrokerProfile?    @relation(fields: [brokerId], references: [id])
+//   guest           GuestCheckout?    @relation(fields: [guestId], references: [id])
+//   guestSession    GuestSession?     @relation(fields: [guestSessionId], references: [id])
+//   user            User?             @relation(fields: [userId], references: [id])
+//   items           OrderItem[]
+//   tracking        ShippingTracking?
+
+//   @@index([userId], map: "order_user_idx")
+//   @@index([guestId], map: "order_guest_idx")
+//   @@index([brokerId], map: "order_broker_idx")
+//   @@index([guestSessionId], map: "order_guest_session_idx")
+//   @@index([status], map: "order_status_idx")
+//   @@index([createdAt], map: "order_created_at_idx")
+// }
+
+// model OrderItem {
+//   id            String   @id @default(uuid()) @db.Uuid
+//   orderId       String   @db.Uuid
+//   productId     String   @db.Uuid
+//   quantity      Int      @default(1)
+//   originalPrice Decimal
+//   discountPrice Decimal?
+//   createdAt     DateTime @default(now()) @db.Timestamptz(6)
+//   order         Order    @relation(fields: [orderId], references: [id])
+//   product       Product  @relation(fields: [productId], references: [id])
+
+//   @@index([orderId], map: "order_item_order_idx")
+//   @@index([productId], map: "order_item_product_idx")
+// }
+
+// model Contact {
+//   id               String   @id @default(uuid()) @db.Uuid
+//   name             String
+//   phone            String   @db.VarChar(20)
+//   email            String?  @db.VarChar(255)
+//   company          String?
+//   deliveryContacts Pickup[] @relation("DeliveryContact")
+//   pickupContacts   Pickup[] @relation("PickupContact")
+// }
+
+// model Pickup {
+//   id                      String                  @id @default(uuid()) @db.Uuid
+//   type                    PickupType              @default(OUTBOUND_SHIPMENT)
+//   scheduledDate           DateTime
+//   timeWindow              String?
+//   specialNotes            String?
+//   totalWeight             Float?
+//   weightUnit              String?                 @default("kg")
+//   packageCount            Int?
+//   itemsDescription        String?
+//   pickupWarehouseId       String?                 @db.Uuid
+//   customPickupAddressId   String?                 @db.Uuid
+//   pickupContactId         String                  @db.Uuid
+//   deliveryWarehouseId     String?                 @db.Uuid
+//   customDeliveryAddressId String?                 @db.Uuid
+//   deliveryContactId       String?                 @db.Uuid
+//   status                  PickupStatus            @default(PENDING)
+//   createdAt               DateTime                @default(now())
+//   calculatedCost          Float?
+//   commercialDocuments     Json?
+//   costCurrency            String?                 @default("USD")
+//   storageFeeAcknowledged  Boolean                 @default(false)
+//   customDeliveryAddress   Address?                @relation("CustomDeliveryDestination", fields: [customDeliveryAddressId], references: [id])
+//   customPickupAddress     Address?                @relation("CustomPickupOrigin", fields: [customPickupAddressId], references: [id])
+//   deliveryContact         Contact?                @relation("DeliveryContact", fields: [deliveryContactId], references: [id])
+//   deliveryWarehouse       Warehouse?              @relation("DeliveryDestination", fields: [deliveryWarehouseId], references: [id])
+//   pickupContact           Contact                 @relation("PickupContact", fields: [pickupContactId], references: [id])
+//   pickupWarehouse         Warehouse?              @relation("PickupOrigin", fields: [pickupWarehouseId], references: [id])
+//   items                   PickupItem[]
+//   packages                PickupPackage[]
+//   ShippingTracking        ShippingTracking?
+//   BrokerProfileToPickup   BrokerProfileToPickup[]
+//   GuestCheckoutToPickup   GuestCheckoutToPickup[]
+//   GuestSessionToPickup    GuestSessionToPickup[]
+//   PickupToUser            PickupToUser[]
+// }
+
+// model PickupItem {
+//   description String
+//   quantity    Int     @default(1)
+//   value       Float
+//   currency    String  @default("USD")
+//   hsCode      String?
+//   weight      Float?
+//   dimensions  Json?
+//   id          String  @id @default(uuid()) @db.Uuid
+//   pickupId    String  @db.Uuid
+//   pickup      Pickup  @relation(fields: [pickupId], references: [id])
+// }
+
+// model PickupPackage {
+//   packageType  String   @default("parcel")
+//   weight       Float
+//   length       Float?
+//   width        Float?
+//   height       Float?
+//   specialNotes String?
+//   itemIds      String[]
+//   id           String   @id @default(uuid()) @db.Uuid
+//   pickupId     String   @db.Uuid
+//   pickup       Pickup   @relation(fields: [pickupId], references: [id])
+// }
+
+// model Address {
+//   id                      String      @id @default(uuid()) @db.Uuid
+//   line1                   String
+//   line2                   String?
+//   city                    String
+//   state                   String
+//   postalCode              String
+//   country                 String      @default("US")
+//   coordinates             Json?
+//   customDeliveryLocations Pickup[]    @relation("CustomDeliveryDestination")
+//   customPickupLocations   Pickup[]    @relation("CustomPickupOrigin")
+//   warehouses              Warehouse[]
+// }
+
+// model Warehouse {
+//   id              String   @id @default(uuid()) @db.Uuid
+//   name            String
+//   addressId       String   @db.Uuid
+//   inboundPickups  Pickup[] @relation("DeliveryDestination")
+//   outboundPickups Pickup[] @relation("PickupOrigin")
+//   address         Address  @relation(fields: [addressId], references: [id])
+// }
+
+// model ShippingTracking {
+//   id                String          @id @default(uuid()) @db.Uuid
+//   trackingNumber    String          @unique @db.VarChar(100)
+//   carrier           String          @db.VarChar(100)
+//   status            ShippingStatus  @default(PENDING)
+//   estimatedDelivery DateTime?       @db.Timestamptz(6)
+//   createdAt         DateTime        @default(now()) @db.Timestamptz(6)
+//   updatedAt         DateTime        @updatedAt @db.Timestamptz(6)
+//   orderId           String?         @unique @db.Uuid
+//   pickupId          String?         @unique @db.Uuid
+//   order             Order?          @relation(fields: [orderId], references: [id])
+//   pickup            Pickup?         @relation(fields: [pickupId], references: [id])
+//   events            TrackingEvent[]
+
+//   @@index([orderId], map: "tracking_order_idx")
+//   @@index([pickupId], map: "tracking_pickup_idx")
+//   @@index([status], map: "tracking_status_idx")
+// }
+
+// model TrackingEvent {
+//   id         String           @id @default(uuid()) @db.Uuid
+//   trackingId String           @db.Uuid
+//   eventType  String           @db.VarChar(100)
+//   location   String?          @db.VarChar(255)
+//   details    String?
+//   occurredAt DateTime         @default(now()) @db.Timestamptz(6)
+//   tracking   ShippingTracking @relation(fields: [trackingId], references: [id])
+
+//   @@index([trackingId], map: "event_tracking_idx")
+//   @@index([occurredAt], map: "event_time_idx")
+// }
+
+// model AgentProfile {
+//   id            String   @id @default(uuid()) @db.Uuid
+//   companyName   String?  @db.VarChar(255)
+//   licenseNumber String?  @db.VarChar(100)
+//   contactPhone  String   @db.VarChar(20)
+//   locations     Json?
+//   rating        Float?
+//   bio           String?
+//   isVerified    Boolean  @default(false)
+//   createdAt     DateTime @default(now()) @db.Timestamptz(6)
+//   userId        String   @unique @db.Uuid
+//   user          User     @relation(fields: [userId], references: [id])
+
+//   @@index([userId], map: "agent_user_idx")
+//   @@index([isVerified], map: "agent_verified_idx")
+// }
+
+// model BrokerProfile {
+//   id                    String                  @id @default(uuid()) @db.Uuid
+//   companyName           String                  @db.VarChar(255)
+//   licenseNumber         String                  @db.VarChar(100)
+//   contactPhone          String                  @db.VarChar(20)
+//   services              Json?
+//   coverage              Json?
+//   rating                Float?
+//   isVerified            Boolean                 @default(false)
+//   createdAt             DateTime                @default(now()) @db.Timestamptz(6)
+//   updatedAt             DateTime                @updatedAt @db.Timestamptz(6)
+//   userId                String                  @unique @db.Uuid
+//   user                  User                    @relation(fields: [userId], references: [id])
+//   orders                Order[]
+//   BrokerProfileToPickup BrokerProfileToPickup[]
+
+//   @@index([userId], map: "broker_user_idx")
+//   @@index([isVerified], map: "broker_verified_idx")
+//   @@index([rating], map: "broker_rating_idx")
+// }
+
+// model BrokerProfileToPickup {
+//   A             String        @db.Uuid
+//   B             String        @db.Uuid
+//   BrokerProfile BrokerProfile @relation(fields: [A], references: [id], onDelete: Cascade)
+//   Pickup        Pickup        @relation(fields: [B], references: [id], onDelete: Cascade)
+
+//   @@id([A, B], map: "_BrokerProfileToPickup_AB_pkey")
+//   @@index([B], map: "_BrokerProfileToPickup_B_index")
+//   @@map("_BrokerProfileToPickup")
+// }
+
+// model GuestCheckoutToPickup {
+//   A             String        @db.Uuid
+//   B             String        @db.Uuid
+//   GuestCheckout GuestCheckout @relation(fields: [A], references: [id], onDelete: Cascade)
+//   Pickup        Pickup        @relation(fields: [B], references: [id], onDelete: Cascade)
+
+//   @@id([A, B], map: "_GuestCheckoutToPickup_AB_pkey")
+//   @@index([B], map: "_GuestCheckoutToPickup_B_index")
+//   @@map("_GuestCheckoutToPickup")
+// }
+
+// model GuestSessionToPickup {
+//   A            String       @db.Uuid
+//   B            String       @db.Uuid
+//   GuestSession GuestSession @relation(fields: [A], references: [id], onDelete: Cascade)
+//   Pickup       Pickup       @relation(fields: [B], references: [id], onDelete: Cascade)
+
+//   @@id([A, B], map: "_GuestSessionToPickup_AB_pkey")
+//   @@index([B], map: "_GuestSessionToPickup_B_index")
+//   @@map("_GuestSessionToPickup")
+// }
+
+// model PickupToUser {
+//   A      String @db.Uuid
+//   B      String @db.Uuid
+//   Pickup Pickup @relation(fields: [A], references: [id], onDelete: Cascade)
+//   User   User   @relation(fields: [B], references: [id], onDelete: Cascade)
+
+//   @@id([A, B], map: "_PickupToUser_AB_pkey")
+//   @@index([B], map: "_PickupToUser_B_index")
+//   @@map("_PickupToUser")
 // }
 
 // enum ShippingStatus {
@@ -665,506 +523,13 @@
 // }
 
 // enum PickupType {
-//   WAREHOUSE_TRANSFER // Warehouse → Warehouse
-//   OUTBOUND_SHIPMENT // Warehouse → Customer
-//   INBOUND_RETURN // Customer → Warehouse
-//   BUSINESS_PICKUP // Business → Warehouse/Customer
-//   RESIDENTIAL_PICKUP // Home → Warehouse/Customer
+//   WAREHOUSE_TRANSFER
+//   OUTBOUND_SHIPMENT
+//   INBOUND_RETURN
+//   BUSINESS_PICKUP
+//   RESIDENTIAL_PICKUP
 // }
 
-// model User {
-//   id                    String                 @id @default(uuid()) @db.Uuid
-//   name                  String?
-//   email                 String?                @unique @db.VarChar(255)
-//   emailVerified         DateTime?
-//   image                 String?
-//   password              String?
-//   role                  Role                   @default(GUEST)
-//   accounts              Account[]
-//   isTwoFactorEnabled    Boolean                @default(false)
-//   twoFactorConfirmation TwoFactorConfirmation?
-//   createdAt             DateTime               @default(now()) @db.Timestamptz(6)
-//   updatedAt             DateTime               @updatedAt @db.Timestamptz(6)
-
-//   // Relationships
-//   cart          Cart?
-//   orders        Order[]
-//   pickups       Pickup[]
-//   agentProfile  AgentProfile?
-//   brokerProfile BrokerProfile?
-//   guestSessions GuestSession[]
-//   Comment       Comment[]
-//   Rating        Rating[]
-
-//   // Indexes
-//   @@index([email], name: "user_email_idx")
-//   @@index([role], name: "user_role_idx")
-// }
-
-// model Account {
-//   id                String  @id @default(uuid()) @db.Uuid
-//   userId            String  @db.Uuid
-//   type              String
-//   provider          String
-//   providerAccountId String
-//   refresh_token     String? @db.Text
-//   access_token      String? @db.Text
-//   expires_at        Int?
-//   token_type        String?
-//   scope             String?
-//   id_token          String? @db.Text
-//   session_state     String?
-
-//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-//   @@unique([provider, providerAccountId])
-// }
-
-// model VerificationToken {
-//   id      String   @id @default(uuid())
-//   email   String
-//   token   String   @unique
-//   expires DateTime
-
-//   @@unique([email, token])
-// }
-
-// model PasswordResetToken {
-//   id      String   @id @default(uuid())
-//   email   String
-//   token   String   @unique
-//   expires DateTime
-
-//   @@unique([email, token])
-// }
-
-// model TwoFactorToken {
-//   id      String   @id @default(uuid()) @db.Uuid
-//   email   String
-//   token   String   @unique
-//   expires DateTime
-
-//   @@unique([email, token])
-// }
-
-// model TwoFactorConfirmation {
-//   id String @id @default(uuid())
-
-//   userId String @db.Uuid
-//   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-//   @@unique([userId])
-// }
-
-// model GuestCheckout {
-//   id        String   @id @default(uuid()) @db.Uuid
-//   email     String   @db.VarChar(255)
-//   phone     String?  @db.VarChar(20)
-//   createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-//   // Relationships
-//   orders  Order[]
-//   pickups Pickup[]
-
-//   // Indexes
-//   @@index([email], name: "guest_email_idx")
-// }
-
-// model GuestSession {
-//   id           String   @id @default(uuid()) @db.Uuid
-//   sessionToken String   @unique @default(uuid()) @db.VarChar(255)
-//   userId       String?  @db.Uuid
-//   user         User?    @relation(fields: [userId], references: [id])
-//   createdAt    DateTime @default(now()) @db.Timestamptz(6)
-//   expiresAt    DateTime @db.Timestamptz(6)
-
-//   // Relationships
-//   cart    Cart?
-//   orders  Order[]
-//   pickups Pickup[]
-
-//   // Indexes
-//   @@index([sessionToken], name: "guest_session_token_idx")
-// }
-
-// model Cart {
-//   id        String   @id @default(uuid()) @db.Uuid
-//   createdAt DateTime @default(now()) @db.Timestamptz(6)
-//   updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-//   // Relationships (either user OR guest session must exist)
-//   user           User?         @relation(fields: [userId], references: [id])
-//   userId         String?       @db.Uuid
-//   guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id])
-//   guestSessionId String?       @db.Uuid
-//   items          CartItem[]
-
-//   // Ensure either user or guestSession exists
-//   @@unique([userId], name: "user_cart_unique")
-//   @@unique([guestSessionId], name: "guest_cart_unique")
-// }
-
-// model CartItem {
-//   id            String   @id @default(uuid()) @db.Uuid
-//   cart          Cart     @relation(fields: [cartId], references: [id])
-//   cartId        String   @db.Uuid
-//   product       Product  @relation(fields: [productId], references: [id])
-//   productId     String   @db.Uuid
-//   quantity      Int      @default(1)
-//   originalPrice Decimal
-//   discountPrice Decimal?
-//   addedAt       DateTime @default(now()) @db.Timestamptz(6)
-
-//   // Indexes
-//   @@index([cartId], name: "cart_item_cart_idx")
-//   @@index([productId], name: "cart_item_product_idx")
-// }
-
-// model Wishlist {
-//   id             String         @id @default(uuid())
-//   userId         String?        @unique
-//   guestSessionId String?        @unique
-//   items          WishlistItem[]
-//   createdAt      DateTime       @default(now())
-//   updatedAt      DateTime       @updatedAt
-// }
-
-// model WishlistItem {
-//   id            String   @id @default(uuid())
-//   productId     String
-//   originalPrice Decimal
-//   discountPrice Decimal?
-//   wishlist      Wishlist @relation(fields: [wishlistId], references: [id])
-//   wishlistId    String
-//   createdAt     DateTime @default(now())
-// }
-
-// model Category {
-//   id          String    @id @default(uuid())
-//   name        String
-//   description String?
-//   slug        String    @unique
-//   mainImage   String?   @db.VarChar(255)
-//   products    Product[]
-//   icon        String?
-//   createdAt   DateTime  @default(now())
-//   updatedAt   DateTime  @updatedAt
-// }
-
-// model SpecialCard {
-//   id        String   @id @default(uuid())
-//   name      String
-//   slug      String   @unique
-//   mainImage String?  @db.VarChar(255)
-//   images    String[]
-// }
-
-// model Product {
-//   id            String    @id @default(uuid()) @db.Uuid
-//   name          String    @db.VarChar(255)
-//   price         Decimal   @db.Decimal(10, 2)
-//   category      Category  @relation(fields: [categoryId], references: [id])
-//   categoryId    String
-//   description   String    @db.Text
-//   discountPrice Decimal?  @db.Decimal(10, 2)
-//   isOnSale      Boolean   @default(false)
-//   saleEndsAt    DateTime?
-//   weight        Float?    @db.DoublePrecision
-//   dimensions    String?   @db.VarChar(50)
-//   isAvailable   Boolean   @default(true)
-//   sku           String?   @unique @db.VarChar(100)
-//   searchVector  String?   @db.Text
-//   mainImage     String    @db.VarChar(255)
-//   images        String[]
-//   serviceType   String?   @db.VarChar(50)
-//   features      Json?     @db.JsonB
-//   averageRating Float?    @default(0.0) @db.DoublePrecision
-//   createdAt     DateTime  @default(now()) @db.Timestamptz(6)
-//   updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
-
-//   // Relationships
-//   cartItems  CartItem[]
-//   orderItems OrderItem[]
-//   ratings    Rating[]
-//   comments   Comment[]
-
-//   // Indexes
-//   @@index([name], name: "product_name_idx")
-//   @@index([averageRating], name: "product_rating_idx")
-// }
-
-// model Rating {
-//   id        String   @id @default(uuid()) @db.Uuid
-//   value     Int      @default(0) // Typically 1-5
-//   product   Product  @relation(fields: [productId], references: [id])
-//   productId String   @db.Uuid
-//   user      User     @relation(fields: [userId], references: [id])
-//   userId    String   @db.Uuid
-//   createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-//   // Ensure one rating per user per product
-//   @@unique([userId, productId], name: "user_product_rating_unique")
-// }
-
-// model Comment {
-//   id        String   @id @default(uuid()) @db.Uuid
-//   content   String   @db.Text
-//   product   Product  @relation(fields: [productId], references: [id])
-//   productId String   @db.Uuid
-//   user      User     @relation(fields: [userId], references: [id])
-//   userId    String   @db.Uuid
-//   createdAt DateTime @default(now()) @db.Timestamptz(6)
-//   updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
-//   // Indexes
-//   @@index([productId], name: "comment_product_idx")
-//   @@index([userId], name: "comment_user_idx")
-// }
-
-// model Order {
-//   id              String      @id @default(uuid()) @db.Uuid
-//   status          OrderStatus @default(PENDING)
-//   total           Float       @db.DoublePrecision
-//   shippingCost    Float       @db.DoublePrecision
-//   trackingNumber  String?     @db.VarChar(100)
-//   shippingAddress Json        @db.JsonB
-//   createdAt       DateTime    @default(now()) @db.Timestamptz(6)
-//   updatedAt       DateTime    @updatedAt @db.Timestamptz(6)
-
-//   // Relationships
-//   user           User?             @relation(fields: [userId], references: [id])
-//   userId         String?           @db.Uuid
-//   guest          GuestCheckout?    @relation(fields: [guestId], references: [id])
-//   guestId        String?           @db.Uuid
-//   broker         BrokerProfile?    @relation(fields: [brokerId], references: [id])
-//   brokerId       String?           @db.Uuid
-//   guestSession   GuestSession?     @relation(fields: [guestSessionId], references: [id])
-//   guestSessionId String?           @db.Uuid
-//   items          OrderItem[]
-//   tracking       ShippingTracking?
-
-//   // Indexes
-//   @@index([userId], name: "order_user_idx")
-//   @@index([guestId], name: "order_guest_idx")
-//   @@index([brokerId], name: "order_broker_idx")
-//   @@index([guestSessionId], name: "order_guest_session_idx")
-//   @@index([status], name: "order_status_idx")
-//   @@index([createdAt], name: "order_created_at_idx")
-// }
-
-// model OrderItem {
-//   id            String   @id @default(uuid()) @db.Uuid
-//   order         Order    @relation(fields: [orderId], references: [id])
-//   orderId       String   @db.Uuid
-//   product       Product  @relation(fields: [productId], references: [id])
-//   productId     String   @db.Uuid
-//   quantity      Int      @default(1)
-//   originalPrice Decimal // Exact price at checkout
-//   discountPrice Decimal? // Discount applied at checkout
-//   createdAt     DateTime @default(now()) @db.Timestamptz(6)
-
-//   @@index([orderId], name: "order_item_order_idx")
-//   @@index([productId], name: "order_item_product_idx")
-// }
-
-// model Contact {
-//   id      String  @id @default(uuid()) @db.Uuid
-//   name    String
-//   phone   String  @db.VarChar(20)
-//   email   String? @db.VarChar(255)
-//   company String?
-
-//   // Relations (both directions)
-//   pickupContacts   Pickup[] @relation("PickupContact")
-//   deliveryContacts Pickup[] @relation("DeliveryContact")
-// }
-
-// model Pickup {
-//   id            String     @id @default(uuid()) @db.Uuid
-//   type          PickupType @default(OUTBOUND_SHIPMENT)
-//   scheduledDate DateTime
-//   timeWindow    String? // "9AM-12PM", "Afternoon", etc.
-//   specialNotes  String? // "Fragile items", "Gate code 1234"
-
-//   // Weight/Dimensions
-//   totalWeight      Float?
-//   weightUnit       String? @default("kg")
-//   packageCount     Int?
-//   itemsDescription String? // "3 boxes of electronics"
-
-//   // Pickup Origin
-//   pickupWarehouse       Warehouse? @relation("PickupOrigin", fields: [pickupWarehouseId], references: [id])
-//   pickupWarehouseId     String?    @db.Uuid
-//   customPickupAddress   Address?   @relation("CustomPickupOrigin", fields: [customPickupAddressId], references: [id])
-//   customPickupAddressId String?    @db.Uuid
-//   pickupContact         Contact    @relation("PickupContact", fields: [pickupContactId], references: [id])
-//   pickupContactId       String     @db.Uuid
-
-//   // Delivery Destination
-//   deliveryWarehouse       Warehouse? @relation("DeliveryDestination", fields: [deliveryWarehouseId], references: [id])
-//   deliveryWarehouseId     String?    @db.Uuid
-//   customDeliveryAddress   Address?   @relation("CustomDeliveryDestination", fields: [customDeliveryAddressId], references: [id])
-//   customDeliveryAddressId String?    @db.Uuid
-//   deliveryContact         Contact?   @relation("DeliveryContact", fields: [deliveryContactId], references: [id])
-//   deliveryContactId       String?    @db.Uuid
-
-//   // contains
-//   items                  PickupItem[]
-//   packages               PickupPackage[]
-//   storageFeeAcknowledged Boolean         @default(false)
-//   calculatedCost         Float?
-//   costCurrency           String?         @default("USD")
-//   commercialDocuments    Json?
-
-//   // Other fields
-//   status    PickupStatus @default(PENDING)
-//   createdAt DateTime     @default(now())
-
-//   User User[]
-
-//   GuestCheckout GuestCheckout[]
-
-//   GuestSession GuestSession[]
-
-//   ShippingTracking ShippingTracking[]
-
-//   BrokerProfile BrokerProfile[]
-// }
-
-// model PickupItem {
-//   id          String  @id @default(uuid()) @db.Uuid
-//   pickup      Pickup  @relation(fields: [pickupId], references: [id])
-//   pickupId    String  @db.Uuid // Add @db.Uuid here to match Pickup.id
-//   description String
-//   quantity    Int     @default(1)
-//   value       Float
-//   currency    String  @default("USD")
-//   hsCode      String?
-//   weight      Float? // Per-item if needed
-//   dimensions  Json? // {length, width, height}
-// }
-
-// model PickupPackage {
-//   id           String   @id @default(uuid()) @db.Uuid
-//   pickup       Pickup   @relation(fields: [pickupId], references: [id])
-//   pickupId     String   @db.Uuid // Add @db.Uuid here
-//   packageType  String   @default("parcel")
-//   weight       Float
-//   length       Float?
-//   width        Float?
-//   height       Float?
-//   specialNotes String?
-//   itemIds      String[] // References to PickupItem.id
-// }
-
-// model Address {
-//   id          String  @id @default(uuid()) @db.Uuid
-//   line1       String
-//   line2       String?
-//   city        String
-//   state       String
-//   postalCode  String
-//   country     String  @default("US")
-//   coordinates Json?
-
-//   // Relations (both directions)
-//   customPickupLocations   Pickup[]    @relation("CustomPickupOrigin")
-//   customDeliveryLocations Pickup[]    @relation("CustomDeliveryDestination")
-//   warehouses              Warehouse[]
-// }
-
-// model Warehouse {
-//   id        String  @id @default(uuid()) @db.Uuid
-//   name      String
-//   address   Address @relation(fields: [addressId], references: [id])
-//   addressId String  @db.Uuid
-
-//   // Relations (both directions)
-//   outboundPickups Pickup[] @relation("PickupOrigin")
-//   inboundPickups  Pickup[] @relation("DeliveryDestination")
-// }
-
-// model ShippingTracking {
-//   id                String         @id @default(uuid()) @db.Uuid
-//   trackingNumber    String         @unique @db.VarChar(100)
-//   carrier           String         @db.VarChar(100)
-//   status            ShippingStatus @default(PENDING)
-//   estimatedDelivery DateTime?      @db.Timestamptz(6)
-//   createdAt         DateTime       @default(now()) @db.Timestamptz(6)
-//   updatedAt         DateTime       @updatedAt @db.Timestamptz(6)
-
-//   // Relationships
-//   order    Order?          @relation(fields: [orderId], references: [id])
-//   orderId  String?         @unique @db.Uuid
-//   pickup   Pickup?         @relation(fields: [pickupId], references: [id])
-//   pickupId String?         @unique @db.Uuid
-//   events   TrackingEvent[]
-
-//   // Indexes
-//   @@index([orderId], name: "tracking_order_idx")
-//   @@index([pickupId], name: "tracking_pickup_idx")
-//   @@index([status], name: "tracking_status_idx")
-// }
-
-// model TrackingEvent {
-//   id         String           @id @default(uuid()) @db.Uuid
-//   tracking   ShippingTracking @relation(fields: [trackingId], references: [id])
-//   trackingId String           @db.Uuid // Must match exactly
-//   eventType  String           @db.VarChar(100)
-//   location   String?          @db.VarChar(255)
-//   details    String?          @db.Text
-//   occurredAt DateTime         @default(now()) @db.Timestamptz(6)
-
-//   // Indexes
-//   @@index([trackingId], name: "event_tracking_idx")
-//   @@index([occurredAt], name: "event_time_idx")
-// }
-
-// model AgentProfile {
-//   id            String   @id @default(uuid()) @db.Uuid
-//   companyName   String?  @db.VarChar(255)
-//   licenseNumber String?  @db.VarChar(100)
-//   contactPhone  String   @db.VarChar(20)
-//   locations     Json?    @db.JsonB
-//   rating        Float?   @db.DoublePrecision
-//   bio           String?  @db.Text
-//   isVerified    Boolean  @default(false)
-//   createdAt     DateTime @default(now()) @db.Timestamptz(6)
-
-//   // Relationships
-//   user   User   @relation(fields: [userId], references: [id])
-//   userId String @unique @db.Uuid
-
-//   // Indexes
-//   @@index([userId], name: "agent_user_idx")
-//   @@index([isVerified], name: "agent_verified_idx")
-// }
-
-// model BrokerProfile {
-//   id            String   @id @default(uuid()) @db.Uuid
-//   companyName   String   @db.VarChar(255)
-//   licenseNumber String   @db.VarChar(100)
-//   contactPhone  String   @db.VarChar(20)
-//   services      Json?    @db.JsonB
-//   coverage      Json?    @db.JsonB
-//   rating        Float?   @db.DoublePrecision
-//   isVerified    Boolean  @default(false)
-//   createdAt     DateTime @default(now()) @db.Timestamptz(6)
-//   updatedAt     DateTime @updatedAt @db.Timestamptz(6)
-
-//   // Relationships
-//   user    User     @relation(fields: [userId], references: [id])
-//   userId  String   @unique @db.Uuid
-//   orders  Order[]
-//   pickups Pickup[]
-
-//   // Indexes
-//   @@index([userId], name: "broker_user_idx")
-//   @@index([isVerified], name: "broker_verified_idx")
-//   @@index([rating], name: "broker_rating_idx")
-// }
-
-//***********From db pull 11:207/13/
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
@@ -1174,483 +539,6 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   extensions = [pgcrypto]
-}
-
-model User {
-  id                    String                 @id @default(uuid()) @db.Uuid
-  name                  String?
-  email                 String?                @unique @db.VarChar(255)
-  emailVerified         DateTime?
-  image                 String?
-  password              String?
-  role                  Role                   @default(GUEST)
-  isTwoFactorEnabled    Boolean                @default(false)
-  createdAt             DateTime               @default(now()) @db.Timestamptz(6)
-  updatedAt             DateTime               @updatedAt @db.Timestamptz(6)
-  accounts              Account[]
-  agentProfile          AgentProfile?
-  brokerProfile         BrokerProfile?
-  cart                  Cart?
-  Comment               Comment[]
-  guestSessions         GuestSession[]
-  orders                Order[]
-  Rating                Rating[]
-  twoFactorConfirmation TwoFactorConfirmation?
-  PickupToUser          PickupToUser[]
-
-  @@index([email], map: "user_email_idx")
-  @@index([role], map: "user_role_idx")
-}
-
-model Account {
-  id                String  @id @default(uuid()) @db.Uuid
-  userId            String  @db.Uuid
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model VerificationToken {
-  id      String   @id @default(uuid())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model PasswordResetToken {
-  id      String   @id @default(uuid())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model TwoFactorToken {
-  id      String   @id @default(uuid()) @db.Uuid
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model TwoFactorConfirmation {
-  id     String @id @default(uuid())
-  userId String @unique @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model GuestCheckout {
-  id                    String                  @id @default(uuid()) @db.Uuid
-  email                 String                  @db.VarChar(255)
-  phone                 String?                 @db.VarChar(20)
-  createdAt             DateTime                @default(now()) @db.Timestamptz(6)
-  orders                Order[]
-  GuestCheckoutToPickup GuestCheckoutToPickup[]
-
-  @@index([email], map: "guest_email_idx")
-}
-
-model GuestSession {
-  id                   String                 @id @default(uuid()) @db.Uuid
-  sessionToken         String                 @unique @default(uuid()) @db.VarChar(255)
-  userId               String?                @db.Uuid
-  createdAt            DateTime               @default(now()) @db.Timestamptz(6)
-  expiresAt            DateTime               @db.Timestamptz(6)
-  cart                 Cart?
-  user                 User?                  @relation(fields: [userId], references: [id])
-  orders               Order[]
-  GuestSessionToPickup GuestSessionToPickup[]
-
-  @@index([sessionToken], map: "guest_session_token_idx")
-}
-
-model Cart {
-  id             String        @id @default(uuid()) @db.Uuid
-  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
-  userId         String?       @unique @db.Uuid
-  guestSessionId String?       @unique @db.Uuid
-  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id])
-  user           User?         @relation(fields: [userId], references: [id])
-  items          CartItem[]
-}
-
-model CartItem {
-  id            String   @id @default(uuid()) @db.Uuid
-  cartId        String   @db.Uuid
-  productId     String   @db.Uuid
-  quantity      Int      @default(1)
-  originalPrice Decimal
-  discountPrice Decimal?
-  addedAt       DateTime @default(now()) @db.Timestamptz(6)
-  cart          Cart     @relation(fields: [cartId], references: [id])
-  product       Product  @relation(fields: [productId], references: [id])
-
-  @@index([cartId], map: "cart_item_cart_idx")
-  @@index([productId], map: "cart_item_product_idx")
-}
-
-model Wishlist {
-  id             String         @id @default(uuid())
-  userId         String?        @unique
-  guestSessionId String?        @unique
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  items          WishlistItem[]
-}
-
-model WishlistItem {
-  id            String   @id @default(uuid())
-  productId     String
-  originalPrice Decimal
-  discountPrice Decimal?
-  wishlistId    String
-  createdAt     DateTime @default(now())
-  wishlist      Wishlist @relation(fields: [wishlistId], references: [id])
-}
-
-model Category {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  slug        String    @unique
-  mainImage   String?   @db.VarChar(255)
-  icon        String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
-}
-
-model SpecialCard {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  mainImage String?  @db.VarChar(255)
-  images    String[]
-}
-
-model Product {
-  id            String      @id @default(uuid()) @db.Uuid
-  name          String      @db.VarChar(255)
-  price         Decimal     @db.Decimal(10, 2)
-  categoryId    String
-  description   String
-  discountPrice Decimal?    @db.Decimal(10, 2)
-  isOnSale      Boolean     @default(false)
-  saleEndsAt    DateTime?
-  weight        Float?
-  dimensions    String?     @db.VarChar(50)
-  isAvailable   Boolean     @default(true)
-  sku           String?     @unique @db.VarChar(100)
-  searchVector  String?
-  mainImage     String      @db.VarChar(255)
-  images        String[]
-  serviceType   String?     @db.VarChar(50)
-  features      Json?
-  averageRating Float?      @default(0.0)
-  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime    @updatedAt @db.Timestamptz(6)
-  cartItems     CartItem[]
-  comments      Comment[]
-  orderItems    OrderItem[]
-  category      Category    @relation(fields: [categoryId], references: [id])
-  ratings       Rating[]
-
-  @@index([name], map: "product_name_idx")
-  @@index([averageRating], map: "product_rating_idx")
-}
-
-model Rating {
-  id        String   @id @default(uuid()) @db.Uuid
-  value     Int      @default(0)
-  productId String   @db.Uuid
-  userId    String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@unique([userId, productId], name: "user_product_rating_unique")
-}
-
-model Comment {
-  id        String   @id @default(uuid()) @db.Uuid
-  content   String
-  productId String   @db.Uuid
-  userId    String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@index([productId], map: "comment_product_idx")
-  @@index([userId], map: "comment_user_idx")
-}
-
-model Order {
-  id              String            @id @default(uuid()) @db.Uuid
-  status          OrderStatus       @default(PENDING)
-  total           Float
-  shippingCost    Float
-  trackingNumber  String?           @db.VarChar(100)
-  shippingAddress Json
-  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
-  userId          String?           @db.Uuid
-  guestId         String?           @db.Uuid
-  brokerId        String?           @db.Uuid
-  guestSessionId  String?           @db.Uuid
-  broker          BrokerProfile?    @relation(fields: [brokerId], references: [id])
-  guest           GuestCheckout?    @relation(fields: [guestId], references: [id])
-  guestSession    GuestSession?     @relation(fields: [guestSessionId], references: [id])
-  user            User?             @relation(fields: [userId], references: [id])
-  items           OrderItem[]
-  tracking        ShippingTracking?
-
-  @@index([userId], map: "order_user_idx")
-  @@index([guestId], map: "order_guest_idx")
-  @@index([brokerId], map: "order_broker_idx")
-  @@index([guestSessionId], map: "order_guest_session_idx")
-  @@index([status], map: "order_status_idx")
-  @@index([createdAt], map: "order_created_at_idx")
-}
-
-model OrderItem {
-  id            String   @id @default(uuid()) @db.Uuid
-  orderId       String   @db.Uuid
-  productId     String   @db.Uuid
-  quantity      Int      @default(1)
-  originalPrice Decimal
-  discountPrice Decimal?
-  createdAt     DateTime @default(now()) @db.Timestamptz(6)
-  order         Order    @relation(fields: [orderId], references: [id])
-  product       Product  @relation(fields: [productId], references: [id])
-
-  @@index([orderId], map: "order_item_order_idx")
-  @@index([productId], map: "order_item_product_idx")
-}
-
-model Contact {
-  id               String   @id @default(uuid()) @db.Uuid
-  name             String
-  phone            String   @db.VarChar(20)
-  email            String?  @db.VarChar(255)
-  company          String?
-  deliveryContacts Pickup[] @relation("DeliveryContact")
-  pickupContacts   Pickup[] @relation("PickupContact")
-}
-
-model Pickup {
-  id                      String                  @id @default(uuid()) @db.Uuid
-  type                    PickupType              @default(OUTBOUND_SHIPMENT)
-  scheduledDate           DateTime
-  timeWindow              String?
-  specialNotes            String?
-  totalWeight             Float?
-  weightUnit              String?                 @default("kg")
-  packageCount            Int?
-  itemsDescription        String?
-  pickupWarehouseId       String?                 @db.Uuid
-  customPickupAddressId   String?                 @db.Uuid
-  pickupContactId         String                  @db.Uuid
-  deliveryWarehouseId     String?                 @db.Uuid
-  customDeliveryAddressId String?                 @db.Uuid
-  deliveryContactId       String?                 @db.Uuid
-  status                  PickupStatus            @default(PENDING)
-  createdAt               DateTime                @default(now())
-  calculatedCost          Float?
-  commercialDocuments     Json?
-  costCurrency            String?                 @default("USD")
-  storageFeeAcknowledged  Boolean                 @default(false)
-  customDeliveryAddress   Address?                @relation("CustomDeliveryDestination", fields: [customDeliveryAddressId], references: [id])
-  customPickupAddress     Address?                @relation("CustomPickupOrigin", fields: [customPickupAddressId], references: [id])
-  deliveryContact         Contact?                @relation("DeliveryContact", fields: [deliveryContactId], references: [id])
-  deliveryWarehouse       Warehouse?              @relation("DeliveryDestination", fields: [deliveryWarehouseId], references: [id])
-  pickupContact           Contact                 @relation("PickupContact", fields: [pickupContactId], references: [id])
-  pickupWarehouse         Warehouse?              @relation("PickupOrigin", fields: [pickupWarehouseId], references: [id])
-  items                   PickupItem[]
-  packages                PickupPackage[]
-  ShippingTracking        ShippingTracking?
-  BrokerProfileToPickup   BrokerProfileToPickup[]
-  GuestCheckoutToPickup   GuestCheckoutToPickup[]
-  GuestSessionToPickup    GuestSessionToPickup[]
-  PickupToUser            PickupToUser[]
-}
-
-model PickupItem {
-  description String
-  quantity    Int     @default(1)
-  value       Float
-  currency    String  @default("USD")
-  hsCode      String?
-  weight      Float?
-  dimensions  Json?
-  id          String  @id @default(uuid()) @db.Uuid
-  pickupId    String  @db.Uuid
-  pickup      Pickup  @relation(fields: [pickupId], references: [id])
-}
-
-model PickupPackage {
-  packageType  String   @default("parcel")
-  weight       Float
-  length       Float?
-  width        Float?
-  height       Float?
-  specialNotes String?
-  itemIds      String[]
-  id           String   @id @default(uuid()) @db.Uuid
-  pickupId     String   @db.Uuid
-  pickup       Pickup   @relation(fields: [pickupId], references: [id])
-}
-
-model Address {
-  id                      String      @id @default(uuid()) @db.Uuid
-  line1                   String
-  line2                   String?
-  city                    String
-  state                   String
-  postalCode              String
-  country                 String      @default("US")
-  coordinates             Json?
-  customDeliveryLocations Pickup[]    @relation("CustomDeliveryDestination")
-  customPickupLocations   Pickup[]    @relation("CustomPickupOrigin")
-  warehouses              Warehouse[]
-}
-
-model Warehouse {
-  id              String   @id @default(uuid()) @db.Uuid
-  name            String
-  addressId       String   @db.Uuid
-  inboundPickups  Pickup[] @relation("DeliveryDestination")
-  outboundPickups Pickup[] @relation("PickupOrigin")
-  address         Address  @relation(fields: [addressId], references: [id])
-}
-
-model ShippingTracking {
-  id                String          @id @default(uuid()) @db.Uuid
-  trackingNumber    String          @unique @db.VarChar(100)
-  carrier           String          @db.VarChar(100)
-  status            ShippingStatus  @default(PENDING)
-  estimatedDelivery DateTime?       @db.Timestamptz(6)
-  createdAt         DateTime        @default(now()) @db.Timestamptz(6)
-  updatedAt         DateTime        @updatedAt @db.Timestamptz(6)
-  orderId           String?         @unique @db.Uuid
-  pickupId          String?         @unique @db.Uuid
-  order             Order?          @relation(fields: [orderId], references: [id])
-  pickup            Pickup?         @relation(fields: [pickupId], references: [id])
-  events            TrackingEvent[]
-
-  @@index([orderId], map: "tracking_order_idx")
-  @@index([pickupId], map: "tracking_pickup_idx")
-  @@index([status], map: "tracking_status_idx")
-}
-
-model TrackingEvent {
-  id         String           @id @default(uuid()) @db.Uuid
-  trackingId String           @db.Uuid
-  eventType  String           @db.VarChar(100)
-  location   String?          @db.VarChar(255)
-  details    String?
-  occurredAt DateTime         @default(now()) @db.Timestamptz(6)
-  tracking   ShippingTracking @relation(fields: [trackingId], references: [id])
-
-  @@index([trackingId], map: "event_tracking_idx")
-  @@index([occurredAt], map: "event_time_idx")
-}
-
-model AgentProfile {
-  id            String   @id @default(uuid()) @db.Uuid
-  companyName   String?  @db.VarChar(255)
-  licenseNumber String?  @db.VarChar(100)
-  contactPhone  String   @db.VarChar(20)
-  locations     Json?
-  rating        Float?
-  bio           String?
-  isVerified    Boolean  @default(false)
-  createdAt     DateTime @default(now()) @db.Timestamptz(6)
-  userId        String   @unique @db.Uuid
-  user          User     @relation(fields: [userId], references: [id])
-
-  @@index([userId], map: "agent_user_idx")
-  @@index([isVerified], map: "agent_verified_idx")
-}
-
-model BrokerProfile {
-  id                    String                  @id @default(uuid()) @db.Uuid
-  companyName           String                  @db.VarChar(255)
-  licenseNumber         String                  @db.VarChar(100)
-  contactPhone          String                  @db.VarChar(20)
-  services              Json?
-  coverage              Json?
-  rating                Float?
-  isVerified            Boolean                 @default(false)
-  createdAt             DateTime                @default(now()) @db.Timestamptz(6)
-  updatedAt             DateTime                @updatedAt @db.Timestamptz(6)
-  userId                String                  @unique @db.Uuid
-  user                  User                    @relation(fields: [userId], references: [id])
-  orders                Order[]
-  BrokerProfileToPickup BrokerProfileToPickup[]
-
-  @@index([userId], map: "broker_user_idx")
-  @@index([isVerified], map: "broker_verified_idx")
-  @@index([rating], map: "broker_rating_idx")
-}
-
-model BrokerProfileToPickup {
-  A             String        @db.Uuid
-  B             String        @db.Uuid
-  BrokerProfile BrokerProfile @relation(fields: [A], references: [id], onDelete: Cascade)
-  Pickup        Pickup        @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@id([A, B], map: "_BrokerProfileToPickup_AB_pkey")
-  @@index([B], map: "_BrokerProfileToPickup_B_index")
-  @@map("_BrokerProfileToPickup")
-}
-
-model GuestCheckoutToPickup {
-  A             String        @db.Uuid
-  B             String        @db.Uuid
-  GuestCheckout GuestCheckout @relation(fields: [A], references: [id], onDelete: Cascade)
-  Pickup        Pickup        @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@id([A, B], map: "_GuestCheckoutToPickup_AB_pkey")
-  @@index([B], map: "_GuestCheckoutToPickup_B_index")
-  @@map("_GuestCheckoutToPickup")
-}
-
-model GuestSessionToPickup {
-  A            String       @db.Uuid
-  B            String       @db.Uuid
-  GuestSession GuestSession @relation(fields: [A], references: [id], onDelete: Cascade)
-  Pickup       Pickup       @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@id([A, B], map: "_GuestSessionToPickup_AB_pkey")
-  @@index([B], map: "_GuestSessionToPickup_B_index")
-  @@map("_GuestSessionToPickup")
-}
-
-model PickupToUser {
-  A      String @db.Uuid
-  B      String @db.Uuid
-  Pickup Pickup @relation(fields: [A], references: [id], onDelete: Cascade)
-  User   User   @relation(fields: [B], references: [id], onDelete: Cascade)
-
-  @@id([A, B], map: "_PickupToUser_AB_pkey")
-  @@index([B], map: "_PickupToUser_B_index")
-  @@map("_PickupToUser")
 }
 
 enum ShippingStatus {
@@ -1689,9 +577,503 @@ enum PickupStatus {
 }
 
 enum PickupType {
-  WAREHOUSE_TRANSFER
-  OUTBOUND_SHIPMENT
-  INBOUND_RETURN
-  BUSINESS_PICKUP
-  RESIDENTIAL_PICKUP
+  WAREHOUSE_TRANSFER // Warehouse → Warehouse
+  OUTBOUND_SHIPMENT // Warehouse → Customer
+  INBOUND_RETURN // Customer → Warehouse
+  BUSINESS_PICKUP // Business → Warehouse/Customer
+  RESIDENTIAL_PICKUP // Home → Warehouse/Customer
+}
+
+model User {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  name                  String?
+  email                 String?                @unique @db.VarChar(255)
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  role                  Role                   @default(GUEST)
+  accounts              Account[]
+  isTwoFactorEnabled    Boolean                @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
+  createdAt             DateTime               @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime               @updatedAt @db.Timestamptz(6)
+
+  // Relationships
+  cart          Cart?
+  orders        Order[]
+  pickups       Pickup[]
+  agentProfile  AgentProfile?
+  brokerProfile BrokerProfile?
+  guestSessions GuestSession[]
+  Comment       Comment[]
+  Rating        Rating[]
+
+  // Indexes
+  @@index([email], name: "user_email_idx")
+  @@index([role], name: "user_role_idx")
+}
+
+model Account {
+  id                String  @id @default(uuid()) @db.Uuid
+  userId            String  @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id      String   @id @default(uuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(uuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id      String   @id @default(uuid()) @db.Uuid
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id String @id @default(uuid())
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+model GuestCheckout {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relationships
+  orders  Order[]
+  pickups Pickup[]
+
+  // Indexes
+  @@index([email], name: "guest_email_idx")
+}
+
+model GuestSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique @default(uuid()) @db.VarChar(255)
+  userId       String?  @db.Uuid
+  user         User?    @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  expiresAt    DateTime @db.Timestamptz(6)
+
+  // Relationships
+  cart    Cart?
+  orders  Order[]
+  pickups Pickup[]
+
+  // Indexes
+  @@index([sessionToken], name: "guest_session_token_idx")
+}
+
+model Cart {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  // Relationships (either user OR guest session must exist)
+  user           User?         @relation(fields: [userId], references: [id])
+  userId         String?       @db.Uuid
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id])
+  guestSessionId String?       @db.Uuid
+  items          CartItem[]
+
+  // Ensure either user or guestSession exists
+  @@unique([userId], name: "user_cart_unique")
+  @@unique([guestSessionId], name: "guest_cart_unique")
+}
+
+model CartItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  cart          Cart     @relation(fields: [cartId], references: [id])
+  cartId        String   @db.Uuid
+  product       Product  @relation(fields: [productId], references: [id])
+  productId     String   @db.Uuid
+  quantity      Int      @default(1)
+  originalPrice Decimal
+  discountPrice Decimal?
+  addedAt       DateTime @default(now()) @db.Timestamptz(6)
+
+  // Indexes
+  @@index([cartId], name: "cart_item_cart_idx")
+  @@index([productId], name: "cart_item_product_idx")
+}
+
+model Wishlist {
+  id             String         @id @default(uuid())
+  userId         String?        @unique
+  guestSessionId String?        @unique
+  items          WishlistItem[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id            String   @id @default(uuid())
+  productId     String
+  originalPrice Decimal
+  discountPrice Decimal?
+  wishlist      Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlistId    String
+  createdAt     DateTime @default(now())
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  slug        String    @unique
+  mainImage   String?   @db.VarChar(255)
+  products    Product[]
+  icon        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SpecialCard {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  mainImage String?  @db.VarChar(255)
+  images    String[]
+}
+
+model Product {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String    @db.VarChar(255)
+  price         Decimal   @db.Decimal(10, 2)
+  category      Category  @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  description   String    @db.Text
+  discountPrice Decimal?  @db.Decimal(10, 2)
+  isOnSale      Boolean   @default(false)
+  saleEndsAt    DateTime?
+  weight        Float?    @db.DoublePrecision
+  dimensions    String?   @db.VarChar(50)
+  isAvailable   Boolean   @default(true)
+  sku           String?   @unique @db.VarChar(100)
+  stock         Int       @default(0)
+  searchVector  String?   @db.Text
+  mainImage     String    @db.VarChar(255)
+  images        String[]
+  serviceType   String?   @db.VarChar(50)
+  features      Json?     @db.JsonB
+  averageRating Float?    @default(0.0) @db.DoublePrecision
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+
+  // Relationships
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  ratings    Rating[]
+  comments   Comment[]
+
+  // Indexes
+  @@index([name], name: "product_name_idx")
+  @@index([averageRating], name: "product_rating_idx")
+}
+
+model Rating {
+  id        String   @id @default(uuid()) @db.Uuid
+  value     Int      @default(0) // Typically 1-5
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  // Ensure one rating per user per product
+  @@unique([userId, productId], name: "user_product_rating_unique")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  content   String   @db.Text
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  // Indexes
+  @@index([productId], name: "comment_product_idx")
+  @@index([userId], name: "comment_user_idx")
+}
+
+model Order {
+  id              String      @id @default(uuid()) @db.Uuid
+  status          OrderStatus @default(PENDING)
+  total           Float       @db.DoublePrecision
+  shippingCost    Float       @db.DoublePrecision
+  trackingNumber  String?     @db.VarChar(100)
+  shippingAddress Json        @db.JsonB
+  createdAt       DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime    @updatedAt @db.Timestamptz(6)
+
+  // Relationships
+  user           User?             @relation(fields: [userId], references: [id])
+  userId         String?           @db.Uuid
+  guest          GuestCheckout?    @relation(fields: [guestId], references: [id])
+  guestId        String?           @db.Uuid
+  broker         BrokerProfile?    @relation(fields: [brokerId], references: [id])
+  brokerId       String?           @db.Uuid
+  guestSession   GuestSession?     @relation(fields: [guestSessionId], references: [id])
+  guestSessionId String?           @db.Uuid
+  items          OrderItem[]
+  tracking       ShippingTracking?
+
+  // Indexes
+  @@index([userId], name: "order_user_idx")
+  @@index([guestId], name: "order_guest_idx")
+  @@index([brokerId], name: "order_broker_idx")
+  @@index([guestSessionId], name: "order_guest_session_idx")
+  @@index([status], name: "order_status_idx")
+  @@index([createdAt], name: "order_created_at_idx")
+}
+
+model OrderItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  order         Order    @relation(fields: [orderId], references: [id])
+  orderId       String   @db.Uuid
+  product       Product  @relation(fields: [productId], references: [id])
+  productId     String   @db.Uuid
+  quantity      Int      @default(1)
+  originalPrice Decimal // Exact price at checkout
+  discountPrice Decimal? // Discount applied at checkout
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([orderId], name: "order_item_order_idx")
+  @@index([productId], name: "order_item_product_idx")
+}
+
+model Contact {
+  id      String  @id @default(uuid()) @db.Uuid
+  name    String
+  phone   String  @db.VarChar(20)
+  email   String? @db.VarChar(255)
+  company String?
+
+  // Relations (both directions)
+  pickupContacts   Pickup[] @relation("PickupContact")
+  deliveryContacts Pickup[] @relation("DeliveryContact")
+}
+
+model Pickup {
+  id            String     @id @default(uuid()) @db.Uuid
+  type          PickupType @default(OUTBOUND_SHIPMENT)
+  scheduledDate DateTime
+  timeWindow    String? // "9AM-12PM", "Afternoon", etc.
+  specialNotes  String? // "Fragile items", "Gate code 1234"
+
+  // Weight/Dimensions
+  totalWeight      Float?
+  weightUnit       String? @default("kg")
+  packageCount     Int?
+  itemsDescription String? // "3 boxes of electronics"
+
+  // Pickup Origin
+  pickupWarehouse       Warehouse? @relation("PickupOrigin", fields: [pickupWarehouseId], references: [id])
+  pickupWarehouseId     String?    @db.Uuid
+  customPickupAddress   Address?   @relation("CustomPickupOrigin", fields: [customPickupAddressId], references: [id])
+  customPickupAddressId String?    @db.Uuid
+  pickupContact         Contact    @relation("PickupContact", fields: [pickupContactId], references: [id])
+  pickupContactId       String     @db.Uuid
+
+  // Delivery Destination
+  deliveryWarehouse       Warehouse? @relation("DeliveryDestination", fields: [deliveryWarehouseId], references: [id])
+  deliveryWarehouseId     String?    @db.Uuid
+  customDeliveryAddress   Address?   @relation("CustomDeliveryDestination", fields: [customDeliveryAddressId], references: [id])
+  customDeliveryAddressId String?    @db.Uuid
+  deliveryContact         Contact?   @relation("DeliveryContact", fields: [deliveryContactId], references: [id])
+  deliveryContactId       String?    @db.Uuid
+
+  // contains
+  items                  PickupItem[]
+  packages               PickupPackage[]
+  storageFeeAcknowledged Boolean         @default(false)
+  calculatedCost         Float?
+  costCurrency           String?         @default("USD")
+  commercialDocuments    Json?
+
+  // Other fields
+  status    PickupStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+
+  User User[]
+
+  GuestCheckout GuestCheckout[]
+
+  GuestSession GuestSession[]
+
+  ShippingTracking ShippingTracking[]
+
+  BrokerProfile BrokerProfile[]
+}
+
+model PickupItem {
+  id          String  @id @default(uuid()) @db.Uuid
+  pickup      Pickup  @relation(fields: [pickupId], references: [id])
+  pickupId    String  @db.Uuid // Add @db.Uuid here to match Pickup.id
+  description String
+  quantity    Int     @default(1)
+  value       Float
+  currency    String  @default("USD")
+  hsCode      String?
+  weight      Float? // Per-item if needed
+  dimensions  Json? // {length, width, height}
+}
+
+model PickupPackage {
+  id           String   @id @default(uuid()) @db.Uuid
+  pickup       Pickup   @relation(fields: [pickupId], references: [id])
+  pickupId     String   @db.Uuid // Add @db.Uuid here
+  packageType  String   @default("parcel")
+  weight       Float
+  length       Float?
+  width        Float?
+  height       Float?
+  specialNotes String?
+  itemIds      String[] // References to PickupItem.id
+}
+
+model Address {
+  id          String  @id @default(uuid()) @db.Uuid
+  line1       String
+  line2       String?
+  city        String
+  state       String
+  postalCode  String
+  country     String  @default("US")
+  coordinates Json?
+
+  // Relations (both directions)
+  customPickupLocations   Pickup[]    @relation("CustomPickupOrigin")
+  customDeliveryLocations Pickup[]    @relation("CustomDeliveryDestination")
+  warehouses              Warehouse[]
+}
+
+model Warehouse {
+  id        String  @id @default(uuid()) @db.Uuid
+  name      String
+  address   Address @relation(fields: [addressId], references: [id])
+  addressId String  @db.Uuid
+
+  // Relations (both directions)
+  outboundPickups Pickup[] @relation("PickupOrigin")
+  inboundPickups  Pickup[] @relation("DeliveryDestination")
+}
+
+model ShippingTracking {
+  id                String         @id @default(uuid()) @db.Uuid
+  trackingNumber    String         @unique @db.VarChar(100)
+  carrier           String         @db.VarChar(100)
+  status            ShippingStatus @default(PENDING)
+  estimatedDelivery DateTime?      @db.Timestamptz(6)
+  createdAt         DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @db.Timestamptz(6)
+
+  // Relationships
+  order    Order?          @relation(fields: [orderId], references: [id])
+  orderId  String?         @unique @db.Uuid
+  pickup   Pickup?         @relation(fields: [pickupId], references: [id])
+  pickupId String?         @unique @db.Uuid
+  events   TrackingEvent[]
+
+  // Indexes
+  @@index([orderId], name: "tracking_order_idx")
+  @@index([pickupId], name: "tracking_pickup_idx")
+  @@index([status], name: "tracking_status_idx")
+}
+
+model TrackingEvent {
+  id         String           @id @default(uuid()) @db.Uuid
+  tracking   ShippingTracking @relation(fields: [trackingId], references: [id])
+  trackingId String           @db.Uuid // Must match exactly
+  eventType  String           @db.VarChar(100)
+  location   String?          @db.VarChar(255)
+  details    String?          @db.Text
+  occurredAt DateTime         @default(now()) @db.Timestamptz(6)
+
+  // Indexes
+  @@index([trackingId], name: "event_tracking_idx")
+  @@index([occurredAt], name: "event_time_idx")
+}
+
+model AgentProfile {
+  id            String   @id @default(uuid()) @db.Uuid
+  companyName   String?  @db.VarChar(255)
+  licenseNumber String?  @db.VarChar(100)
+  contactPhone  String   @db.VarChar(20)
+  locations     Json?    @db.JsonB
+  rating        Float?   @db.DoublePrecision
+  bio           String?  @db.Text
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relationships
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @db.Uuid
+
+  // Indexes
+  @@index([userId], name: "agent_user_idx")
+  @@index([isVerified], name: "agent_verified_idx")
+}
+
+model BrokerProfile {
+  id            String   @id @default(uuid()) @db.Uuid
+  companyName   String   @db.VarChar(255)
+  licenseNumber String   @db.VarChar(100)
+  contactPhone  String   @db.VarChar(20)
+  services      Json?    @db.JsonB
+  coverage      Json?    @db.JsonB
+  rating        Float?   @db.DoublePrecision
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
+
+  // Relationships
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String   @unique @db.Uuid
+  orders  Order[]
+  pickups Pickup[]
+
+  // Indexes
+  @@index([userId], name: "broker_user_idx")
+  @@index([isVerified], name: "broker_verified_idx")
+  @@index([rating], name: "broker_rating_idx")
 }

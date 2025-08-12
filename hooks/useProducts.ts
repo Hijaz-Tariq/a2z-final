@@ -83,8 +83,14 @@ interface UseProductsParams {
   forOffers?: string;
 }
 
+interface ProductWithCategory extends Product {
+  category: {
+    name: string;
+  };
+}
+
 export function useProducts(params: UseProductsParams = {}) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

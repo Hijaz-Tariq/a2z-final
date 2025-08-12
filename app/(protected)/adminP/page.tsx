@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "../../../components/ui/card";
 import { Role } from "@prisma/client";
 import { toast } from "sonner";
 
-const AdminPage = () => {
+const AdminPPage = () => {
   const onServerActionClick = () => {
     admin()
       .then((data) => {
@@ -68,4 +68,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default AdminPPage;

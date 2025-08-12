@@ -275,6 +275,7 @@ import {
   calculateVolumetricWeight,
   convertToMetric,
 } from "../utils/unit-conversions";
+import { Contact, GuestCheckout, GuestSession, Pickup, PickupItem, PickupPackage, User } from "@prisma/client";
 
 export interface PackageDimensions {
   length: number;
@@ -411,6 +412,16 @@ export const validatePackage = (
     chargeableWeight: Math.max(actualWeightKg, volumetricWeight),
     volumetricWeight,
   };
+};
+
+export type PickupWithRelations = Pickup & {
+  User: User[];
+  GuestCheckout: GuestCheckout[];
+  GuestSession: GuestSession[];
+  pickupContact: Contact;
+  deliveryContact?: Contact;
+  items: PickupItem[];
+  packages: PickupPackage[];
 };
 
 export type PickupFormData = z.infer<typeof pickupFormSchema>;
