@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // // ProductsContent.tsx
 // import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 // import StatusBadge from './StatusBadge';
@@ -25,7 +26,7 @@
 // // const products = useProducts()
 
 //   return (
-    
+
 //     <div className="bg-white rounded-lg shadow">
 //       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
 //         <h3 className="text-lg font-medium text-gray-900">Products Management</h3>
@@ -244,6 +245,8 @@ import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 // import StatusBadge from './StatusBadge';
 import { Button } from '../../../components/ui/button';
 import { useProducts } from '../../../hooks/useProducts';
+import { AddProduct } from './addProduct';
+import { EditProduct } from './editDialog';
 
 // interface Product {
 //   id: string;
@@ -272,10 +275,11 @@ export default function ProductsContent() {
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900">Products Management</h3>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
+        {/* <Button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
           <Plus className="h-4 w-4 mr-2" />
           Add Product
-        </button>
+        </Button> */}
+        <AddProduct />
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -296,21 +300,26 @@ export default function ProductsContent() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category?.name || 'No Category'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${Number(product.price)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.isOnSale?'Yes': 'NO'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.isOnSale ? 'Yes' : 'NO'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {/* <StatusBadge status={product.status} /> */}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <td className="px-6 py-4 m-0.5 whitespace-nowrap text-sm font-medium">
                   <button className="text-blue-600 hover:text-blue-900 mr-3">
-                    <Eye className="h-4 w-4" />
+                    {/* <Eye className="h-4 w-4" /> */}
                   </button>
-                  <Button className="text-green-600 hover:text-green-900 mr-3">
+                  {/* <button className="text-green-600 hover:text-green-900 mr-3">
                     <Edit className="h-4 w-4" />
-                  </Button>
-                  <button className="text-red-600 hover:text-red-900">
+                  </button> */}
+                  <EditProduct product={product}                    // productId={product.id}
+                    // onSave={() => {
+                      // Optional: Refetch products after update
+                    // }}
+                  />
+                  <Button className="text-red-600 hover:text-red-900 p-1">
                     <Trash2 className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

@@ -33,7 +33,6 @@
 //  */
 // export const DEFAULT_LOGIN_REDIRECT = "/settings";
 
-
 export const publicRoutes = [
   "/",
   "/auth/new-verification",
@@ -75,6 +74,7 @@ export const apiStorePrefix = [
   "/api/cart",
   "/api/cart/items",
   "/api/pickup",
+  "/api/uploadthing",
 ];
 /**
  * The default redirect path after logging in

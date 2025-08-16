@@ -83,3 +83,52 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json(updatedProduct);
 }
+
+export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  try {
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.name || !body.price || !body.categoryId) {
+      return NextResponse.json(
+        { error: "Missing required fields (name, price, categoryId)" },
+        { status: 400 }
+      );
+    }
+
+    // Create the product
+    const newProduct = await db.product.create({
+      data: {
+        name: body.name,
+        price: parseFloat(body.price),
+        description: body.description || "",
+        stock: parseInt(body.stock) || 0,
+        isOnSale: body.isOnSale || false,
+        discountPrice: body.discountPrice ? parseFloat(body.discountPrice) : null,
+        isAvailable: body.isAvailable !== false, // default to true
+        categoryId: body.categoryId,
+        weight: body.weight ? parseFloat(body.weight) : null,
+        dimensions: body.dimensions || null,
+        sku: body.sku || null,
+        saleEndsAt: body.saleEndsAt || null,
+        images: body.images || [],
+        features: body.features || null,
+        mainImage: body.mainImage || null,
+        serviceType: body.serviceType || null
+      },
+    });
+
+    return NextResponse.json(newProduct, { status: 201 });
+  } catch (error) {
+    console.error("Product creation error:", error);
+    return NextResponse.json(
+      { error: "Failed to create product" },
+      { status: 500 }
+    );
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // import { createUploadthing, type FileRouter } from "uploadthing/next";
 
 // import { db } from "@/lib/db";
@@ -97,6 +98,14 @@ const getAuthContext = async (req: Request) => {
   throw new UploadThingError("Unauthorized");
 };
 
+const getAdminContext = async (req: Request) => {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    throw new UploadThingError("Only admins can upload product images");
+  }
+  return { userId: session.user.id };
+};
+
 export const ourFileRouter = {
   commercialDocument: f({
     pdf: { maxFileSize: "4MB", maxFileCount: 1 },
@@ -131,6 +140,21 @@ export const ourFileRouter = {
         isGuest: metadata.isGuest,
         documentUrl: file.ufsUrl,
       };
+    }),
+  productImages: f({
+    image: {
+      maxFileSize: "8MB",
+      maxFileCount: 10,
+      // fileTypes: ["image/png", "image/jpeg", "image/webp", "image/avif"],
+    },
+  })
+    .middleware(async ({ req }) => {
+      const context = await getAdminContext(req);
+      return context;
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log(`Product image uploaded by admin:`, metadata.userId);
+      return { imageUrl: file.url };
     }),
 } satisfies FileRouter;
 
