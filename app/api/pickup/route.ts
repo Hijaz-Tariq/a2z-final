@@ -154,24 +154,35 @@ export async function POST(req: Request) {
         //     GuestSession: { connect: { id: guestSessionId } },
         //   }),
 
+        // ...(guestSessionId && !session?.user?.id
+        //   ? {
+        //       GuestSessionToPickup: {
+        //         create: [
+        //           {
+        //             GuestSession: {
+        //               connect: {
+        //                 id: guestSessionId,
+        //               },
+        //             },
+        //           },
+        //         ],
+        //       },
+        //     }
+        //   : undefined),
+
         ...(guestSessionId && !session?.user?.id
           ? {
-              GuestSessionToPickup: {
-                create: [
-                  {
-                    GuestSession: {
-                      connect: {
-                        id: guestSessionId,
-                      },
-                    },
-                  },
-                ],
+              GuestSession: {
+                connect: {
+                  id: guestSessionId,
+                },
               },
             }
           : undefined),
 
         items: {
           create: data.items.map((item: any) => ({
+            id: item.id,
             description: item.description,
             quantity: item.quantity,
             value: item.value,

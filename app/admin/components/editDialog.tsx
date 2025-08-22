@@ -473,13 +473,13 @@ import Image from "next/image"
 import { Product } from "@prisma/client"
 
 interface EditProductProps {
-  product: Product // Replace with Prisma.Product type if available
+  product: Product
 }
 
 export function EditProduct({ product }: EditProductProps) {
-//   const [open, setOpen] = React.useState(false)
-const [dialogOpen, setDialogOpen] = React.useState(false)
-const [categoryOpen, setCategoryOpen] = React.useState(false)
+  //   const [open, setOpen] = React.useState(false)
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [categoryOpen, setCategoryOpen] = React.useState(false)
   const [openDate, setOpenDate] = React.useState(false)
   const { categories } = useCategories()
   const [date, setDate] = React.useState<Date | undefined>(
@@ -553,7 +553,7 @@ const [categoryOpen, setCategoryOpen] = React.useState(false)
   }
 
   return (
-    <Dialog  open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" type="button">
           <Edit className="h-4 w-4 mr-2" />

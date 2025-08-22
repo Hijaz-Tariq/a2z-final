@@ -143,7 +143,6 @@
 
 // export type PickupFormData = z.infer<typeof pickupFormSchema>;
 
-
 // import * as z from "zod";
 // import {
 //   calculateVolumetricWeight,
@@ -269,13 +268,21 @@
 
 // export type PickupFormData = z.infer<typeof pickupFormSchema>;
 
-
 import * as z from "zod";
 import {
   calculateVolumetricWeight,
   convertToMetric,
 } from "../utils/unit-conversions";
-import { Contact, GuestCheckout, GuestSession, Pickup, PickupItem, PickupPackage, User } from "@prisma/client";
+import {
+  Address,
+  Contact,
+  GuestCheckout,
+  GuestSession,
+  Pickup,
+  PickupItem,
+  PickupPackage,
+  User,
+} from "@prisma/client";
 
 export interface PackageDimensions {
   length: number;
@@ -422,6 +429,8 @@ export type PickupWithRelations = Pickup & {
   deliveryContact?: Contact;
   items: PickupItem[];
   packages: PickupPackage[];
+  customPickupAddress?: Address | null;
+  customDeliveryAddress?: Address | null;
 };
 
 export type PickupFormData = z.infer<typeof pickupFormSchema>;
