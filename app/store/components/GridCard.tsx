@@ -95,7 +95,7 @@ export function ProductGridCard({ product }: ProductGridCardProps) {
         </div>
       )}
 
-      <Link href={`/store/${product.id}`} className="block h-full">
+      <Link href={`/store/products/${product.id}`} className="block h-full">
         {/* Image section remains compact */}
         <div className="relative h-[60%] transition-transform duration-300 group-hover:scale-105">
           {getProductImage ? (

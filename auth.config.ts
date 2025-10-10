@@ -52,6 +52,7 @@ import { LoginSchema } from "./schemas";
 import { getUserByEmail } from "./data/user";
 
 export default {
+  trustHost: true,
   providers: [
     Google({
             clientId: process.env.GOOGLE_CLIENT_ID,

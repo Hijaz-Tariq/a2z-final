@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import { PickupFormData } from "../types/PickupPage";
+import { PickupFormData } from "../utils/shipping-calculations";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { CalendarIcon } from "lucide-react";

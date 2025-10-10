@@ -572,7 +572,10 @@ export function EditProduct({ product }: EditProductProps) {
               <Label htmlFor="name">Product Name</Label>
               <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required />
             </div>
-
+            <div className="grid gap-2">
+              <Label htmlFor="stock">Stock</Label>
+              <Input id="stock" name="stock" value={formData.stock} onChange={handleNumberInput} required />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} required />

@@ -42,7 +42,7 @@
 'use client';
 import { useState } from 'react';
 import { Control } from 'react-hook-form';
-import { PickupFormData } from '../types/PickupPage';
+import { PickupFormData } from '../utils/shipping-calculations';
 import { convertToMetric, convertFromMetric } from '../utils/unit-conversions';
 import { FormField, FormControl, FormItem, FormLabel } from '../components/ui/form';
 import { Input } from '../components/ui/input';

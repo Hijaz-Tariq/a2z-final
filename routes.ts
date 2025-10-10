@@ -73,8 +73,11 @@ export const apiStorePrefix = [
   "/store",
   "/api/cart",
   "/api/cart/items",
+  "/api/checkout",
+  "/api/checkout/pickup",
   "/api/pickup",
   "/api/uploadthing",
+  "/api/webhooks/stripe",
 ];
 /**
  * The default redirect path after logging in

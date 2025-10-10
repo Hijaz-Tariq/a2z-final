@@ -371,7 +371,7 @@ export default function Header() {
               
               {/* Checkout Button */}
               <Button className="w-full mt-6">
-                Proceed to Checkout
+                Proceed to Checkout (from header)
               </Button>
             </div>
           </div>

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { PickupFormData } from "../types/PickupPage";
+import { PickupFormData } from "../utils/shipping-calculations";
+// import { PickupFormData } from "../types/PickupPage";
 import {
   FormField,
   FormItem,

@@ -522,6 +522,7 @@ import UsersContent from './components/UsersContent';
 import ProductsContent from './components/ProductsContent';
 import OrdersContent from './components/OrdersContent';
 import PickupsContent from './components/PickupsContent';
+import PricesContent from './components/PricesContent';
 
 export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -535,6 +536,7 @@ export default function AdminPage() {
       case 'products': return <ProductsContent />;
       case 'orders': return <OrdersContent />;
       case 'pickups': return <PickupsContent />;
+      case 'prices': return <PricesContent />;
       case 'reports': return <div className="bg-white rounded-lg shadow p-6">Reports Content</div>;
       case 'settings': return <div className="bg-white rounded-lg shadow p-6">Settings Content</div>;
       default: return <DashboardContent />;

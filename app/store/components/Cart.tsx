@@ -24,12 +24,16 @@ import {
 import { ShoppingCartIcon, Loader2 } from 'lucide-react';
 
 import { useCart } from '../../../hooks/useCart';
+import { useCheckout } from '../../../hooks/useCheckout';
 
 export function Cart() {
 
     const [open, setOpen] = useState(false);
     const isDesktop = useMediaQuery('(min-width: 768px)');
-    const { cart, loading, fetchCart } = useCart();
+    // const { cart, loading, fetchCart } = useCart();
+
+    const { cart, loading, fetchCart, clearCart } = useCart();
+    const { checkout: initiateCheckout, isLoading: isCheckoutLoading } = useCheckout();
 
     // Fetch cart when drawer/dialog opens
     useEffect(() => {
@@ -45,6 +49,44 @@ export function Cart() {
         const isOnSale = product.isOnSale;
         const price = isOnSale ? product.discountPrice : product.price;
         return { price, isOnSale };
+    };
+
+    const handleCheckout = async () => {
+        if (!cart?.items?.length) return;
+
+        try {
+            const items = cart.items.map(item => {
+                const { price } = getItemPrice(item);
+                return {
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: price,
+                    name: item.product?.name
+                };
+            });
+
+            const result = await initiateCheckout({
+                type: 'cart',
+                items,
+                cartId: cart.id,
+                shippingAddress: {
+                    line1: "123 Main St", // Get from user input in real app
+                    city: "Anytown",
+                    state: "CA",
+                    postalCode: "12345",
+                    country: "US",
+                }
+            });
+
+            if (result.url) {
+                // Clear cart on successful checkout initiation
+                await clearCart();
+                window.location.href = result.url;
+            }
+        } catch (error) {
+            console.error("Checkout failed:", error);
+            alert(`Checkout failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+        }
     };
 
     const CartContent = () => {
@@ -118,9 +160,19 @@ export function Cart() {
 
                 {/* Checkout Button */}
                 <div className="p-4 border-t">
-                    <Button className="w-full" size="lg" disabled={!cart?.items?.length}>
+                    {/* <Button className="w-full" size="lg" disabled={!cart?.items?.length}>
                         Proceed to Checkout
+                    </Button> */}
+
+                    <Button
+                        className="w-full"
+                        size="lg"
+                        disabled={!cart?.items?.length || isCheckoutLoading}
+                        onClick={handleCheckout}
+                    >
+                        {isCheckoutLoading ? 'Processing...' : 'Proceed to Checkout'}
                     </Button>
+
                 </div>
             </>
         );

@@ -1,9 +1,12 @@
 "use client"
-import { Eye, Plus, Trash2 } from 'lucide-react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useEffect, useState } from 'react';
-import { PickupWithRelations } from '../../../types/PickupPage';
-import { PickupDialog } from './editPickup';
+// import { PickupWithRelations } from '../../../types/PickupPage';
+import { PickupWithRelations } from '../../../utils/shipping-calculations';
+import { PickupDialog } from './watchPickup';
+import Link from "next/link";
+// import EditPickupPage from '../pickup/[pickupId]/page';
 
 export default function PickupsContent() {
   const [pickups, setPickups] = useState<PickupWithRelations[]>([]);
@@ -157,10 +160,18 @@ export default function PickupsContent() {
                     <StatusBadge status={pickup.status} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-3">
-                      <Eye className="h-4 w-4" />
-                    </button>
                     <PickupDialog pickup={transformPickupForDialog(pickup)} />
+                    <button className="text-blue-600 hover:text-blue-900 mr-3">
+                      {/* <Link href={`/admin/pickup/${pickup.id}`} className="text-blue-600 hover:text-blue-900 mr-3 inline-flex">
+                        <Edit className="h-4 w-4" />
+                      </Link> */}
+                      <Link
+                        href={`/admin/pickup/${pickup.id}`}
+                        className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                    </button>
                     <button className="text-red-600 hover:text-red-900">
                       <Trash2 className="h-4 w-4" />
                     </button>

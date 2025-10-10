@@ -4,27 +4,32 @@
 import { useEffect, useState, useActionState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ShippingStatus, PickupType } from "@prisma/client";
 // import { timeWindowFromDB } from "@/lib/timeWindow";
 import { Form } from "../../components/ui/form";
 import { StepIndicator } from "../../components/stepIndicator";
 import { PackageDetails } from "../../components/PackageDetails";
 import { AddressInformationStep } from "../../components/address";
 import { ReviewStep } from "../../components/ReviewStep";
-import { PickupFormData, pickupFormSchema } from "../../types/PickupPage";
+import { PickupFormData, pickupFormSchema } from "../../utils/shipping-calculations";
 import { v4 as uuidv4 } from "uuid";
 // import { useActionState } from "react";
 import { pickupAction } from "../../actions/pickupAction";
+import { SuccessAlert } from "./components/successAlert";
 
 export default function PickupPage() {
     const initialItemId = uuidv4();
     const initialPackageId = uuidv4();
 
     const [currentStep, setCurrentStep] = useState(0);
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const steps = ["Package Details", "Address Information", "Review & Submit"];
 
     const form = useForm<PickupFormData>({
         resolver: zodResolver(pickupFormSchema) as any,
         defaultValues: {
+            status: ShippingStatus.PENDING,
+            type: PickupType.OUTBOUND_SHIPMENT,
             items: [
                 {
                     id: initialItemId,
@@ -39,7 +44,7 @@ export default function PickupPage() {
                 {
                     id: initialPackageId,
                     packageType: "parcel",
-                    weight: 0.1,
+                    weight: 1,
                     dimensions: { length: 1, width: 1, height: 1 },
                     itemIds: [initialItemId],
                     specialNotes: "",
@@ -91,9 +96,10 @@ export default function PickupPage() {
 
     // Use Server Action + useActionState
     const [formData, setFormData] = useState<PickupFormData>(form.getValues());
-    const [actionState, formAction, isPending] = useActionState(
+    const [actionState, formAction, isPending,] = useActionState(
         pickupAction,
         { message: "", error: "" }
+        // { message: "", error: "", paymentUrl: "" }
     );
 
     // Sync form data with hidden input
@@ -103,7 +109,20 @@ export default function PickupPage() {
         });
         return () => subscription.unsubscribe();
     }, [form]);
+    useEffect(() => {
+        if (actionState.message && !actionState.error) {
+            setShowSuccessAlert(true);
+        }
+    }, [actionState]);
 
+    console.log('RAW FORM DATA packages:', formData.packages);
+    console.log('Package 0 type:', typeof formData.packages[0].weight);
+    console.log('Package 0 dimensions type:', typeof formData.packages[0].dimensions.length);
+    // useEffect(() => {
+    //     if (actionState.paymentUrl) {
+    //         window.location.href = actionState.paymentUrl;
+    //     }
+    // }, [actionState.paymentUrl]);
     return (
         <div className="max-w-4xl mx-auto py-4">
             <StepIndicator steps={steps} currentStep={currentStep} />
@@ -134,6 +153,11 @@ export default function PickupPage() {
                         />
                     )}
                 </form>
+                <SuccessAlert
+                    open={showSuccessAlert}
+                    onOpenChange={setShowSuccessAlert}
+                    pickupId={actionState.pickupId}
+                />
             </Form>
         </div>
     );

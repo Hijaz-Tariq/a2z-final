@@ -407,6 +407,75 @@ export const useCart = () => {
       return false;
     }
   };
+
+  const clearCart = async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/cart/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      setCart(null);
+      return true;
+    } catch (error) {
+      console.error("Clear cart failed:", error);
+      return false;
+    }
+  };
+
+  const removeFromCart = async (cartItemId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/cart/items/${cartItemId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const updatedCart = await response.json();
+      setCart(updatedCart);
+      return true;
+    } catch (error) {
+      console.error("Remove from cart failed:", error);
+      return false;
+    }
+  };
+
+  const updateCartItemQuantity = async (
+    cartItemId: string,
+    quantity: number
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/cart/items/${cartItemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ quantity }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const updatedCart = await response.json();
+      setCart(updatedCart);
+      return true;
+    } catch (error) {
+      console.error("Update cart item failed:", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
@@ -416,6 +485,9 @@ export const useCart = () => {
     loading,
     addToCart,
     fetchCart,
+      clearCart,
+    removeFromCart,
+    updateCartItemQuantity,
     isEmpty: !cart || cart.items.length === 0,
   };
 };

@@ -433,7 +433,7 @@ import {
     SelectValue,
 } from "../components/ui/select";
 import { useFormContext } from "react-hook-form";
-import { PickupFormData } from "../types/PickupPage";
+import { PickupFormData } from '../utils/shipping-calculations'
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
 import { CountrySelect, StateSelect } from "react-country-state-city";

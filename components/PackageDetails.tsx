@@ -601,7 +601,7 @@
 //                   </FormItem>
 //                 )}
 //               />
-              
+
 //               <div className="space-y-2">
 //                 <FormLabel>Dimensions (cm)</FormLabel>
 //                 <div className="flex gap-2">
@@ -1401,11 +1401,12 @@
 //*****************************6:02 13/07 */
 "use client";
 
-import { useState, 
+import {
+  useState,
   // useRef 
 } from "react";
 import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
-import { PickupFormData } from "../types/PickupPage";
+import { PickupFormData } from "../utils/shipping-calculations";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -1452,13 +1453,13 @@ export const PackageDetails = ({ onNext }: { onNext: () => void }) => {
           i < currentCount
             ? packages[i]
             : {
-                id: crypto.randomUUID(),
-                packageType: "parcel",
-                weight: 0.1,
-                dimensions: { length: 1, width: 1, height: 1 },
-                itemIds: [],
-                specialNotes: "",
-              }
+              id: crypto.randomUUID(),
+              packageType: "parcel",
+              weight: 1,
+              dimensions: { length: 1, width: 1, height: 1 },
+              itemIds: [],
+              specialNotes: "",
+            }
         );
       }
     } else {
@@ -1503,7 +1504,7 @@ export const PackageDetails = ({ onNext }: { onNext: () => void }) => {
             className={`px-4 py-2 ${activeTab === "items" ? "border-b-2 border-primary" : ""}`}
             onClick={() => setActiveTab("items")}
           >
-            Items ({items.length})
+            Contents ({items.length})
           </button>
           <button
             className={`px-4 py-2 ${activeTab === "packages" ? "border-b-2 border-primary" : ""}`}

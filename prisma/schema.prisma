@@ -569,6 +569,24 @@ enum OrderStatus {
   RETURNED
 }
 
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  REQUIRES_ACTION
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+  CRYPTO
+  OTHER
+}
+
 enum PickupStatus {
   PENDING
   SCHEDULED
@@ -582,6 +600,13 @@ enum PickupType {
   INBOUND_RETURN // Customer → Warehouse
   BUSINESS_PICKUP // Business → Warehouse/Customer
   RESIDENTIAL_PICKUP // Home → Warehouse/Customer
+}
+
+// Rule types for your A, B, C conditions
+enum RuleType {
+  TOTAL_WEIGHT_VALUE // A: total weight < X AND total value > Y
+  DIMENSION_THRESHOLD // B: any dimension > X
+  PACKAGE_WEIGHT // C: any package weight > X
 }
 
 model User {
@@ -599,14 +624,16 @@ model User {
   updatedAt             DateTime               @updatedAt @db.Timestamptz(6)
 
   // Relationships
-  cart          Cart?
-  orders        Order[]
-  pickups       Pickup[]
-  agentProfile  AgentProfile?
-  brokerProfile BrokerProfile?
-  guestSessions GuestSession[]
-  Comment       Comment[]
-  Rating        Rating[]
+  cart           Cart?
+  orders         Order[]
+  pickups        Pickup[]
+  agentProfile   AgentProfile?
+  brokerProfile  BrokerProfile?
+  guestSessions  GuestSession[]
+  Comment        Comment[]
+  Rating         Rating[]
+  StripeCustomer StripeCustomer[]
+  Pickup         Pickup[]         @relation("ApprovedPickups")
 
   // Indexes
   @@index([email], name: "user_email_idx")
@@ -671,13 +698,14 @@ model TwoFactorConfirmation {
 model GuestCheckout {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
-  email     String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
   phone     String?  @db.VarChar(20)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   // Relationships
-  orders  Order[]
-  pickups Pickup[]
+  orders         Order[]
+  pickups        Pickup[]
+  StripeCustomer StripeCustomer[]
 
   // Indexes
   @@index([email], name: "guest_email_idx")
@@ -856,6 +884,8 @@ model Order {
   guestSessionId String?           @db.Uuid
   items          OrderItem[]
   tracking       ShippingTracking?
+  paymentStatus  PaymentStatus?    @default(PENDING)
+  paymentMethod  PaymentMethod?
 
   // Indexes
   @@index([userId], name: "order_user_idx")
@@ -879,6 +909,24 @@ model OrderItem {
 
   @@index([orderId], name: "order_item_order_idx")
   @@index([productId], name: "order_item_product_idx")
+}
+
+model StripeCustomer {
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String?        @unique @db.Uuid
+  user             User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestCheckoutId  String?        @unique @db.Uuid
+  guestCheckout    GuestCheckout? @relation(fields: [guestCheckoutId], references: [id], onDelete: Cascade)
+  stripeCustomerId String         @unique
+  createdAt        DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime       @updatedAt @db.Timestamptz(6)
+
+  // Ensure only one relation exists
+  @@unique([userId, guestCheckoutId], name: "stripe_customer_relation_unique")
+  // Indexes
+  @@index([userId], name: "stripe_customer_user_idx")
+  @@index([guestCheckoutId], name: "stripe_customer_guest_checkout_idx")
+  @@index([stripeCustomerId], name: "stripe_customer_id_idx")
 }
 
 model Contact {
@@ -931,14 +979,20 @@ model Pickup {
   commercialDocuments    Json?
 
   // Other fields
-  status    PickupStatus @default(PENDING)
-  createdAt DateTime     @default(now())
+  status        ShippingStatus @default(PENDING)
+  paymentStatus PaymentStatus  @default(PENDING)
+  createdAt     DateTime       @default(now())
 
-  User User[]
+  approvedAt   DateTime? @db.Timestamptz(6)
+  approvedBy   User?     @relation("ApprovedPickups", fields: [approvedById], references: [id])
+  approvedById String?   @db.Uuid
 
-  GuestCheckout GuestCheckout[]
+  User   User[]
+  userId String? @db.Uuid
 
-  GuestSession GuestSession[]
+  GuestSession   GuestSession[]
+  guestSessionId String?         @db.Uuid
+  GuestCheckout  GuestCheckout[]
 
   ShippingTracking ShippingTracking[]
 
@@ -1032,6 +1086,76 @@ model TrackingEvent {
   // Indexes
   @@index([trackingId], name: "event_tracking_idx")
   @@index([occurredAt], name: "event_time_idx")
+}
+
+// ADD THESE MODELS TO YOUR EXISTING SCHEMA:
+
+// Country model for dynamic pricing (compatible with your existing address system)
+model Country {
+  id           Int     @id
+  name         String
+  code         String  @unique
+  requiresDocs Boolean @default(false)
+
+  // Relationships
+  originPricings ShippingPricing[] @relation("OriginPricing")
+  destPricings   ShippingPricing[] @relation("DestinationPricing")
+
+  // Indexes
+  @@index([code], name: "country_code_idx")
+}
+
+// Main pricing table for country-to-country routes
+model ShippingPricing {
+  id                 String   @id @default(uuid()) @db.Uuid
+  originCountryId    Int
+  destCountryId      Int
+  tier1Price         Float // <=1kg
+  tier2Price         Float // <=10kg
+  tier3Price         Float // <=15kg  
+  tier4Price         Float // <=20kg
+  tier5Price         Float // >20kg (per kg)
+  originDocsRequired Boolean  @default(false)
+  destDocsRequired   Boolean  @default(false)
+  currency           String   @default("USD")
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relationships
+  originCountry Country           @relation("OriginPricing", fields: [originCountryId], references: [id])
+  destCountry   Country           @relation("DestinationPricing", fields: [destCountryId], references: [id])
+  extraCharges  ExtraChargeRule[]
+
+  // Ensure unique pricing per route
+  @@unique([originCountryId, destCountryId], name: "unique_pricing_route")
+  // Indexes
+  @@index([originCountryId], name: "pricing_origin_idx")
+  @@index([destCountryId], name: "pricing_dest_idx")
+  @@index([isActive], name: "pricing_active_idx")
+}
+
+// Extra charge rules (your A, B, C conditions)
+model ExtraChargeRule {
+  id              String   @id @default(uuid()) @db.Uuid
+  pricingId       String   @db.Uuid
+  ruleType        RuleType
+  conditionValue  Float? // Threshold value (weight/dimension)
+  conditionValue2 Float? // Second condition (for value-based rules)
+  chargeAmount    Float // Additional charge
+  currency        String   @default("USD")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  pricing ShippingPricing @relation(fields: [pricingId], references: [id])
+
+  // Ensure one rule type per pricing
+  @@unique([pricingId, ruleType], name: "unique_rule_type")
+  // Indexes
+  @@index([pricingId], name: "rule_pricing_idx")
+  @@index([ruleType], name: "rule_type_idx")
 }
 
 model AgentProfile {

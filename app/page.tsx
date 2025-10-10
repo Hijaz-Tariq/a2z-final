@@ -46,7 +46,7 @@ export default function Home() {
             Fast Air Freight & Cost-Effective Sea Shipping
           </p>
           <Button asChild className="bg-accent text-black hover:bg-accent/90">
-            <Link href="/booking">Book a Pickup Now</Link>
+            <Link href="/newParcel">Book a Pickup Now</Link>
           </Button>
         </div>
       </section>
