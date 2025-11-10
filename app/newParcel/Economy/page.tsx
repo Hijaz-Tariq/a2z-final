@@ -12,6 +12,8 @@ import { Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { Button } from "../../../components/ui/button";
 import { SuccessAlert } from "../components/successAlert";
+import { PickupFormData } from "@/utils/shipping-calculations";
+import { $Enums } from "@prisma/client"
 
 interface ParcelFormData {
     sendername: string;
@@ -79,6 +81,7 @@ const EconomyParcel = () => {
     const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(true);
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [createdPickupId, setCreatedPickupId] = useState<string>('');
+    const [alertDisplayData, setAlertDisplayData] = useState<PickupFormData | undefined>(undefined);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -109,6 +112,102 @@ const EconomyParcel = () => {
 
         fetchWarehouses();
     }, []);
+
+    // Helper to convert form data to the shape SuccessAlert expects
+    const buildDisplayFormData = (): PickupFormData => {
+        const totalWeight = formData.oilQuantity + formData.oliveQuantity;
+
+        return {
+            // Required fields (use dummy/placeholder values since they're only for display)
+            status: $Enums.ShippingStatus.PENDING,
+            type: $Enums.PickupType.WAREHOUSE_TRANSFER,
+            acceptCallsForUpdates: false, // ✅ required
+            timeWindow: {
+                start: 'anytime',
+                end: 'anytime'
+            } ,
+
+            // Items (even if empty)
+            items: [
+                ...(formData.oilQuantity > 0 ? [{
+                    id: "oil-1",
+                    description: "زيت",
+                    quantity: formData.oilQuantity,
+                    value: 200 * formData.oilQuantity,
+                    currency: "USD",
+                    hsCode: undefined,
+                    assignedPackage: null,
+                    updatedAt: Date.now(),
+                }] : []),
+                ...(formData.oliveQuantity > 0 ? [{
+                    id: "olive-1",
+                    description: "زيتون",
+                    quantity: formData.oliveQuantity,
+                    value: 100 * formData.oliveQuantity,
+                    currency: "USD",
+                    hsCode: undefined,
+                    assignedPackage: null,
+                    updatedAt: Date.now(),
+                }] : []),
+            ],
+
+            // Packages
+            packages: [{
+                id: "pkg-1",
+                packageType: "Economy",
+                weight: totalWeight,
+                dimensions: { length: 30, width: 20, height: 20 },
+                itemIds: [], // Not used in display
+                specialNotes: formData.note || "Economy parcel - oil and olive products",
+            }],
+
+            // Pickup details (SENDER)
+            pickupDetails: {
+                locationType: "custom",
+                contact: {
+                    name: formData.sendername,
+                    phone: senderPhone || "",
+                    email: formData.senderemail || undefined,
+                },
+                address: {
+                    line1: formData.senderAddressLine1,
+                    line2: undefined,
+                    company: "",
+                    city: formData.senderCity,
+                    state: "PS",
+                    postalCode: "00000",
+                    country: "PS",
+                    countryId: 169,
+                },
+            },
+
+            // Delivery details (RECIPIENT)
+            deliveryDetails: {
+                locationType: "custom",
+                contact: {
+                    name: formData.recipientname,
+                    phone: recipientPhone || "",
+                    email: formData.recipientemail || undefined,
+                },
+                address: {
+                    line1: formData.recipientAddressLine1,
+                    line2: undefined,
+                    company: "",
+                    city: formData.recipientCity,
+                    state: formData.recipientState,
+                    postalCode: formData.recipientZipCode,
+                    country: "US",
+                    countryId: 233,
+                },
+            },
+
+            // Other required fields (placeholders)
+            scheduledDate: formData.date ? new Date(formData.date) : new Date(),
+            storageFeeAcknowledged: false,
+            costCurrency: "USD",
+            calculatedCost: totalCost,
+        };
+    };
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -208,6 +307,7 @@ const EconomyParcel = () => {
                 // Reset form (keep your existing reset logic)
                 const data = await response.json();
                 setCreatedPickupId(data.id);
+                const displayData = buildDisplayFormData();
                 setShowSuccessAlert(true);
                 setFormData({
                     sendername: "",
@@ -231,6 +331,7 @@ const EconomyParcel = () => {
                 setSenderPhone(undefined);
                 setRecipientPhone(undefined);
                 setIsPaid(false);
+                setAlertDisplayData(displayData);
             } else {
                 const errorData = await response.json();
                 toast.error(errorData.error || "Failed to create parcel");
@@ -540,8 +641,12 @@ const EconomyParcel = () => {
             </form>
             <SuccessAlert
                 open={showSuccessAlert}
-                onOpenChange={setShowSuccessAlert}
+                onOpenChange={(open) => {
+                    setShowSuccessAlert(open);
+                    if (!open) setAlertDisplayData(undefined); 
+                }}
                 pickupId={createdPickupId}
+                formData={alertDisplayData} // ✅ Now matches expected type
             />
             <ToastContainer />
         </div>
