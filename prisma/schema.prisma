@@ -609,6 +609,11 @@ enum RuleType {
   PACKAGE_WEIGHT // C: any package weight > X
 }
 
+enum WarehouseStatus {
+  ENABLED
+  DISABLED
+}
+
 model User {
   id                    String                 @id @default(uuid()) @db.Uuid
   name                  String?
@@ -976,6 +981,7 @@ model Pickup {
   storageFeeAcknowledged Boolean         @default(false)
   calculatedCost         Float?
   costCurrency           String?         @default("USD")
+  specialPricing         String?
   commercialDocuments    Json?
 
   // Other fields
@@ -1042,14 +1048,21 @@ model Address {
 }
 
 model Warehouse {
-  id        String  @id @default(uuid()) @db.Uuid
-  name      String
-  address   Address @relation(fields: [addressId], references: [id])
-  addressId String  @db.Uuid
-
+  id              String          @id @default(uuid()) @db.Uuid
+  status          WarehouseStatus @default(ENABLED)
+  name            String
+  isDefault       Boolean         @default(false)
+  address         Address         @relation(fields: [addressId], references: [id])
+  addressId       String          @db.Uuid
+  agentId         String          @db.Uuid
+  agent           AgentProfile    @relation(fields: [agentId], references: [id])
   // Relations (both directions)
-  outboundPickups Pickup[] @relation("PickupOrigin")
-  inboundPickups  Pickup[] @relation("DeliveryDestination")
+  outboundPickups Pickup[]        @relation("PickupOrigin")
+  inboundPickups  Pickup[]        @relation("DeliveryDestination")
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  
 }
 
 model ShippingTracking {
@@ -1170,8 +1183,9 @@ model AgentProfile {
   createdAt     DateTime @default(now()) @db.Timestamptz(6)
 
   // Relationships
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique @db.Uuid
+  user       User        @relation(fields: [userId], references: [id])
+  userId     String      @unique @db.Uuid
+  warehouses Warehouse[]
 
   // Indexes
   @@index([userId], name: "agent_user_idx")

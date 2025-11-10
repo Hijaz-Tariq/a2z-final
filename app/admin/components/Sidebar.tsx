@@ -2,6 +2,7 @@
 import {
   LayoutDashboard,
   Users,
+  Contact,
   Package,
   ShoppingCart,
   Truck,
@@ -9,6 +10,7 @@ import {
   Receipt,
   Settings,
   X,
+  Warehouse,
 } from "lucide-react";
 import React from "react";
 
@@ -22,10 +24,12 @@ interface SidebarProps {
 const sidebarItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "users", label: "Users", icon: Users },
+  { id: "customers", label: "Customers", icon: Contact },
   { id: "products", label: "Products", icon: Package },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "pickups", label: "Pickups", icon: Truck },
   { id: "prices", label: "Prices", icon: Receipt },
+  { id: "warehouses", label: "WareHouses", icon: Warehouse },
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "settings", label: "Settings", icon: Settings },
 ];

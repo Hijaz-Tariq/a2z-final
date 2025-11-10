@@ -80,3 +80,7 @@ body,
     @apply bg-background text-foreground;
   }
 }
+table.table-fixed {
+  table-layout: fixed;
+  width: 100%;
+}

@@ -746,7 +746,7 @@ const AddressSection = ({ type }: { type: "pickup" | "delivery" }) => {
                                 // Set the URL directly in the form field
                                 setValue(
                                     `commercialDocuments.${type}Document`,
-                                     documentUrl);
+                                    documentUrl);
 
                                 console.log("Stored URL:", documentUrl);
                             }}

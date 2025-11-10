@@ -39,6 +39,7 @@ export const publicRoutes = [
   "/settings",
   "/store",
   "/newParcel",
+  "/newParcel/Economy",
   "/store/categories", // Add this
   "/store/categories/(.*)", // This covers all sub-routes like /store/categories/electronics
 ];

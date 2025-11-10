@@ -68,12 +68,14 @@ export default function Home() {
             title="Air Freight"
             features={["Worldwide delivery in 3-5 days", "Real-time tracking", "Premium security handling"]}
           />
+          <Link href={`/newParcel/Economy`}>
           <ShippingServiceCard
             icon={ShipIcon}
             title="Economy Sea Shipping"
             features={["Cost-effective bulk shipping", "Customs clearance included", "Environmental friendly"]}
             color="secondary"
           />
+          </Link>
           <ShippingServiceCard
             icon={Warehouse}
             title="Logistic"

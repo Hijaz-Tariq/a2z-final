@@ -34,7 +34,7 @@ import {
 } from "../../../components/ui/card";
 import Image from "next/image";
 import { Badge } from "../../../components/ui/badge";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 
 // Helper function to format address for display
 

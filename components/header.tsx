@@ -261,7 +261,7 @@ import { TrackingInput } from './track';
 import { SearchInput } from "./search";
 import { usePathname } from 'next/navigation';
 import { storeCategories } from './filterItems';
-import { Cart } from '@/store/components/Cart';
+import { Cart } from '@/app/store/components/Cart';
 import { useSession } from 'next-auth/react';
 export default function Header() {
     const { data: session } = useSession();

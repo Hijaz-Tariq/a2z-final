@@ -52,7 +52,7 @@
 // }: ShippingPricingFormProps) => {
 //   const [countries, setCountries] = useState<Country[]>([]);
 //   const [loading, setLoading] = useState(false);
-  
+
 //   const { register, handleSubmit, watch, setValue } = useForm<PricingFormData>({
 //     defaultValues: existingPricing ? {
 //       originCountryId: existingPricing.originCountryId,
@@ -108,9 +108,9 @@
 //       const url = existingPricing 
 //         ? `/api/admin/shipping-pricing/${existingPricing.id}`
 //         : '/api/admin/shipping-pricing';
-      
+
 //       const method = existingPricing ? 'PATCH' : 'POST';
-      
+
 //       const response = await fetch(url, {
 //         method,
 //         headers: { 'Content-Type': 'application/json' },
@@ -253,7 +253,7 @@
 //           {/* Extra Charges */}
 //           <div className="space-y-4 border-t pt-6">
 //             <h3 className="font-medium">Extra Charges (Optional)</h3>
-            
+
 //             {/* Rule A: Total weight & value */}
 //             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded">
 //               <div>
@@ -404,10 +404,10 @@ interface ShippingPricingFormProps {
   onCancel?: () => void;
 }
 
-export const ShippingPricingForm = ({ 
-  existingPricing, 
-  onSuccess, 
-  onCancel 
+export const ShippingPricingForm = ({
+  existingPricing,
+  onSuccess,
+  onCancel
 }: ShippingPricingFormProps) => {
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, setValue, watch } = useForm<PricingFormData>({
@@ -458,12 +458,12 @@ export const ShippingPricingForm = ({
   const onSubmit = async (data: PricingFormData) => {
     setLoading(true);
     try {
-      const url = existingPricing 
+      const url = existingPricing
         ? `/api/admin/shipping-pricing/${existingPricing.id}`
         : '/api/admin/shipping-pricing';
-      
+
       const method = existingPricing ? 'PATCH' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -598,7 +598,7 @@ export const ShippingPricingForm = ({
           {/* Extra Charges - Your A, B, C Rules */}
           <div className="space-y-4 border-t pt-6">
             <h3 className="font-medium">Extra Charges (Optional)</h3>
-            
+
             {/* Rule A: Total weight & value */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded">
               <div>

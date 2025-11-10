@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 // import { useActionState } from "react";
 import { pickupAction } from "../../actions/pickupAction";
 import { SuccessAlert } from "./components/successAlert";
+import { COUNTRY_CODE_TO_ID } from "@/lib/countryMapping";
 
 export default function PickupPage() {
     const initialItemId = uuidv4();
@@ -123,6 +124,71 @@ export default function PickupPage() {
     //         window.location.href = actionState.paymentUrl;
     //     }
     // }, [actionState.paymentUrl]);
+
+    useEffect(() => {
+        const prefillData = localStorage.getItem('prefillParcelData');
+        if (prefillData) {
+            try {
+                const { role, customer } = JSON.parse(prefillData);
+
+                if (role === 'sender') {
+                    form.setValue('pickupDetails.contact.name', customer.name);
+                    form.setValue('pickupDetails.contact.phone', customer.phone);
+                    form.setValue('pickupDetails.contact.email', customer.email || '');
+                    // if (customer.address) {
+                    //     form.setValue('pickupDetails.address.line1', customer.address.line1 || '');
+                    //     form.setValue('pickupDetails.address.city', customer.address.city || '');
+                    //     form.setValue('pickupDetails.address.state', customer.address.state || '');
+                    //     form.setValue('pickupDetails.address.postalCode', customer.address.postalCode || '');
+                    //     form.setValue('pickupDetails.address.country', customer.address.country || 'US');
+                    //     form.setValue('pickupDetails.locationType', 'custom');
+                    // }
+                    if (customer.address) {
+                        const countryId = COUNTRY_CODE_TO_ID[customer.address.country] || 233; // fallback to US (233)
+                        const type = 'pickup'
+                        // Set BOTH country name AND country ID
+                        form.setValue(`${type}Details.address.country`, customer.address.country);
+                        form.setValue(`${type}Details.address.countryId`, countryId);
+
+                        // Set state fields (if you have state mapping)
+                        form.setValue(`${type}Details.address.state`, customer.address.state);
+                        // form.setValue(`${type}Details.address.stateId`, ...); // optional
+
+                        // Set other fields
+                        form.setValue(`${type}Details.address.line1`, customer.address.line1);
+                        form.setValue(`${type}Details.address.city`, customer.address.city);
+                        form.setValue(`${type}Details.address.postalCode`, customer.address.postalCode);
+                        form.setValue(`${type}Details.locationType`, 'custom');
+                    }
+                } else {
+                    form.setValue('deliveryDetails.contact.name', customer.name);
+                    form.setValue('deliveryDetails.contact.phone', customer.phone);
+                    form.setValue('deliveryDetails.contact.email', customer.email || '');
+                    if (customer.address) {
+                        const countryId = COUNTRY_CODE_TO_ID[customer.address.country] || 233; // fallback to US (233)
+                        const type = 'delivery'
+                        // Set BOTH country name AND country ID
+                        form.setValue(`${type}Details.address.country`, customer.address.country);
+                        form.setValue(`${type}Details.address.countryId`, countryId);
+
+                        // Set state fields (if you have state mapping)
+                        form.setValue(`${type}Details.address.state`, customer.address.state);
+                        // form.setValue(`${type}Details.address.stateId`, ...); // optional
+
+                        // Set other fields
+                        form.setValue(`${type}Details.address.line1`, customer.address.line1);
+                        form.setValue(`${type}Details.address.city`, customer.address.city);
+                        form.setValue(`${type}Details.address.postalCode`, customer.address.postalCode);
+                        form.setValue(`${type}Details.locationType`, 'custom');
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to parse prefill data', e);
+            }
+            localStorage.removeItem('prefillParcelData');
+        }
+    }, [form]); // ✅ Fixed: added `form` to deps
+
     return (
         <div className="max-w-4xl mx-auto py-4">
             <StepIndicator steps={steps} currentStep={currentStep} />
@@ -157,6 +223,7 @@ export default function PickupPage() {
                     open={showSuccessAlert}
                     onOpenChange={setShowSuccessAlert}
                     pickupId={actionState.pickupId}
+                    formData={formData}
                 />
             </Form>
         </div>
