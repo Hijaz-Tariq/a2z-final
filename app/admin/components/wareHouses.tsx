@@ -102,7 +102,7 @@ export default function WareHousesPage() {
             <WarehousesList
                 onAddNew={handleAddNew}
                 onEdit={handleEdit}
-                onViewShipments={handleViewShipments} // ← pass new prop
+                // onViewShipments={handleViewShipments} // ← pass new prop
             />
         </div>
     );

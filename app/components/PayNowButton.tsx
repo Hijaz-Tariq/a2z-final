@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast'; // your react-hot-toast hook
 
 export function PayNowButton({ pickupId }: { pickupId: string }) {
   const { toast } = useToast();
-  const router = useRouter();
+  // const router = useRouter();
   const [isPaying, setIsPaying] = useState(false);
 
   const handlePayNow = async () => {

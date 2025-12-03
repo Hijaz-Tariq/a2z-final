@@ -25,11 +25,16 @@ interface TrackingData {
   events: TrackingEvent[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isShippingAddress(obj: any): obj is { city: string; country: string; state?: string; postalCode?: string } {
   return obj != null && typeof obj === 'object' && typeof obj.city === 'string' && typeof obj.country === 'string';
 }
 
-export default async function TrackingPage({ params }: { params: { pickupId: string } }) {
+export default async function TrackingPage({
+  params,
+}: {
+  params: Promise<{ pickupId: string }>;
+}) {
   const { pickupId } =await params;
 
   // Fetch tracking data directly from Prisma

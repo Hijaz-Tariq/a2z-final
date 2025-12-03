@@ -12,6 +12,7 @@ export async function initializeTransaction(
     last_name?: string;
     mobile?: string;
     callback_url: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadata?: Record<string, any>; // Will be stringified
   }
 ) {
