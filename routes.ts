@@ -77,7 +77,7 @@ export const apiStorePrefix = [
   "/api/checkout",
   "/api/checkout/pickup",
   "/api/pickup",
-  
+  "/api/shipping",
   "/api/uploadthing",
   "/api/webhooks/stripe",
   "/api/webhooks/lahza",
