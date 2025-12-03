@@ -80,6 +80,7 @@ export const apiStorePrefix = [
   "/api/shipping",
   "/api/uploadthing",
   "/api/webhooks/stripe",
+  "/api/webhooks/lahza",
 ];
 /**
  * The default redirect path after logging in
