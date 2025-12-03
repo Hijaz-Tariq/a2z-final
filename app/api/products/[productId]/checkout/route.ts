@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "../../../../../lib/db";
-import { stripe } from "../../../../../lib/stripe";
-import { currentUser } from "../../../../../lib/auth";
+import { auth } from "@/auth";
+// import { getCookie } from "../../../../../lib/cookies";
+import { initializeTransaction } from "../../../../../lib/lahza";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL!;
 
 export async function POST(req: Request) {
   try {
@@ -44,31 +47,23 @@ export async function POST(req: Request) {
       );
     }
 
+    // Authentication
+    const session = await auth();
     let userId: string | undefined;
     let guestCheckoutId: string | undefined;
     let guestSessionId: string | undefined;
 
-    // Handle user authentication
-    if (!isGuest) {
-      // Implement your auth logic here
-      const user = await currentUser();
-      userId = user?.id;
-    }
-
-    // Handle guest checkout
-    if (isGuest) {
-      // Check for existing guest session
+    if (!isGuest && session?.user?.id) {
+      userId = session.user.id;
+    } else if (isGuest) {
+      // Reuse existing guest logic
       if (guestSessionToken) {
         const guestSession = await db.guestSession.findUnique({
           where: { sessionToken: guestSessionToken },
           include: {
             orders: {
-              include: {
-                guest: true,
-              },
-              orderBy: {
-                createdAt: "desc",
-              },
+              include: { guest: true },
+              orderBy: { createdAt: "desc" },
               take: 1,
             },
           },
@@ -76,19 +71,15 @@ export async function POST(req: Request) {
 
         if (guestSession) {
           guestSessionId = guestSession.id;
-          // Get guestCheckout from the most recent order
           if (guestSession.orders.length > 0 && guestSession.orders[0].guest) {
             guestCheckoutId = guestSession.orders[0].guest.id;
           }
         }
       }
 
-      // Create or find guest checkout record
-      if (!guestCheckoutId) {
+      if (!guestCheckoutId && customerInfo) {
         let guestCheckout = await db.guestCheckout.findFirst({
-          where: {
-            email: customerInfo.email,
-          },
+          where: { email: customerInfo.email },
         });
 
         if (!guestCheckout) {
@@ -103,28 +94,28 @@ export async function POST(req: Request) {
         guestCheckoutId = guestCheckout.id;
       }
 
-      // Create guest session if not exists
       if (!guestSessionId) {
         const newGuestSession = await db.guestSession.create({
           data: {
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           },
         });
         guestSessionId = newGuestSession.id;
       }
+    } else {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
     // Calculate totals
     const price = product.discountPrice ?? product.price;
     const subtotal = Number(price) * quantity;
-    const shippingCost = await calculateShippingCost(
-      // product,
-      // shippingAddress,
-      // quantity
-    );
+    const shippingCost = await calculateShippingCost();
     const total = subtotal + shippingCost;
 
-    // Create order
+    // Create order (payment not yet confirmed)
     const order = await db.order.create({
       data: {
         status: "PENDING",
@@ -150,134 +141,52 @@ export async function POST(req: Request) {
         items: true,
         user: true,
         guest: true,
-        guestSession: true,
       },
     });
 
-    // Update stock
-    // await db.product.update({
-    //   where: { id: product.id },
-    //   data: { stock: { decrement: quantity } },
-    // });
-
-    // Get or create Stripe customer
-    let stripeCustomerId: string;
+    // Customer info for Lahza (email is required)
     const customerEmail =
-      order.user?.email || order.guest?.email || customerInfo?.email;
+      order.user?.email || order.guest?.email || customerInfo?.email || "guest@example.com";
     const customerName =
-      order.user?.name || order.guest?.name || customerInfo?.name;
+      order.user?.name || order.guest?.name || customerInfo?.name || "Guest";
+    const phone = order.guest?.phone || customerInfo?.phone || "";
 
-    if (userId) {
-      let stripeCustomer = await db.stripeCustomer.findUnique({
-        where: { userId },
-      });
+    // Prepare Lahza transaction
+    const amountInCents = Math.round(total * 100).toString();
+    const reference = `order_${order.id}_${Date.now()}`;
 
-      if (!stripeCustomer) {
-        const customer = await stripe.customers.create({
-          email: customerEmail,
-          name: customerName,
-          metadata: { userId, type: "user" },
-        });
-
-        stripeCustomer = await db.stripeCustomer.create({
-          data: {
-            userId,
-            stripeCustomerId: customer.id,
-          },
-        });
-      }
-      stripeCustomerId = stripeCustomer.stripeCustomerId;
-    } else if (guestCheckoutId) {
-      let stripeCustomer = await db.stripeCustomer.findUnique({
-        where: { guestCheckoutId },
-      });
-
-      if (!stripeCustomer) {
-        const customer = await stripe.customers.create({
-          email: customerEmail,
-          name: customerName,
-          phone: order.guest?.phone || customerInfo?.phone,
-          metadata: { guestCheckoutId, type: "guest" },
-        });
-
-        stripeCustomer = await db.stripeCustomer.create({
-          data: {
-            guestCheckoutId,
-            stripeCustomerId: customer.id,
-          },
-        });
-      }
-      stripeCustomerId = stripeCustomer.stripeCustomerId;
-    } else {
-      // Fallback: create a Stripe customer without linking to user/guest
-      const customer = await stripe.customers.create({
-        email: customerEmail,
-        name: customerName,
-        metadata: { type: "anonymous" },
-      });
-      stripeCustomerId = customer.id;
-    }
-
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: stripeCustomerId,
-      line_items: [
-        {
-          quantity,
-          price_data: {
-            currency: "USD",
-            product_data: {
-              name: product.name,
-              description: product.description || undefined,
-              images: product.images,
-            },
-            unit_amount: Math.round(Number(price) * 100),
-          },
-        },
-        ...(shippingCost > 0
-          ? [
-              {
-                quantity: 1,
-                price_data: {
-                  currency: "USD",
-                  product_data: {
-                    name: "Shipping",
-                    description: "Shipping cost",
-                  },
-                  unit_amount: Math.round(shippingCost * 100),
-                },
-              },
-            ]
-          : []),
-      ],
-      mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/orders/${order.id}?success=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.id}?canceled=1`,
+    const lahzaData = await initializeTransaction({
+      amount: amountInCents,
+      currency: "USD",
+      email: customerEmail,
+      reference,
+      first_name: customerName.split(" ")[0] || customerName,
+      last_name: customerName.split(" ").slice(1).join(" ") || "",
+      mobile: phone,
+      callback_url: `${APP_URL}/api/checkout/verify?orderId=${order.id}&reference=${reference}`,
       metadata: {
         orderId: order.id,
-        ...(userId && { userId }),
-        ...(guestCheckoutId && { guestCheckoutId }),
-        ...(guestSessionId && { guestSessionId }),
+        userId,
+        guestCheckoutId,
+        guestSessionId,
         type: userId ? "user" : "guest",
-      },
-      shipping_address_collection: {
-        allowed_countries: ["US", "CA", "GB", "AU"],
+        // cancel_action: `${APP_URL}/track/${pickupId}`,
       },
     });
 
-    // Update order with session ID
+    // Save Lahza reference in trackingNumber (safe reuse)
     await db.order.update({
       where: { id: order.id },
-      data: { trackingNumber: session.id },
+      data: { trackingNumber: reference },
     });
 
     return NextResponse.json({
-      url: session.url,
+      url: lahzaData.authorization_url,
       orderId: order.id,
       ...(isGuest && guestSessionId && { guestSessionId }),
     });
   } catch (error) {
-    console.error("Checkout error:", error);
+    console.error("Lahza product checkout error:", error);
     return NextResponse.json(
       { error: "Failed to process checkout" },
       { status: 500 }
@@ -285,11 +194,8 @@ export async function POST(req: Request) {
   }
 }
 
-async function calculateShippingCost(
-  // product: any,
-  // address: any,
-  // quantity: number
-): Promise<number> {
-  // Implement your shipping logic here
-  return 5.0; // Flat rate for now
+// Keep your shipping logic — expand later as needed
+async function calculateShippingCost(): Promise<number> {
+  // TODO: Implement real shipping calculation
+  return 5.0; // Flat rate
 }

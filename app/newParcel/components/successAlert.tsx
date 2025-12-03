@@ -187,6 +187,7 @@ import {
 } from "../../components/ui/alert-dialog";
 import { useState, useEffect } from 'react';
 import type { PickupFormData } from "@/utils/shipping-calculations"; // 👈 add this
+import { PaymentStatus } from '@prisma/client';
 
 interface SuccessAlertProps {
   open: boolean;
@@ -194,7 +195,10 @@ interface SuccessAlertProps {
   pickupId?: string;
   brandName?: string;
   logoUrl?: string;
-  formData?: PickupFormData; // 👈 add this
+  formData?: PickupFormData;
+  paymentStatus?: PaymentStatus;
+  onPayNow?: () => void;
+  paymentUrl?: string;
 }
 
 export const SuccessAlert = ({
@@ -203,7 +207,9 @@ export const SuccessAlert = ({
   pickupId,
   brandName = "A2Z-Express",
   logoUrl = "/logo.png",
-  formData, // 👈 add this
+  formData,
+  paymentStatus,
+  paymentUrl,
 }: SuccessAlertProps) => {
   const { Canvas } = useQRCode();
   const [downloadUrl, setDownloadUrl] = useState<string>('');
@@ -423,6 +429,20 @@ export const SuccessAlert = ({
           >
             {isGenerating ? 'Generating Label...' : `Download Label`}
           </AlertDialogAction>
+          {paymentUrl && paymentStatus !== "COMPLETED" && (
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (pickupId) {
+                  sessionStorage.setItem('postCancelRedirect', `/track/${pickupId}`);
+                }
+                window.location.href = paymentUrl;
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {paymentStatus === PaymentStatus.FAILED ? "Retry Payment" : "Pay Now"}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

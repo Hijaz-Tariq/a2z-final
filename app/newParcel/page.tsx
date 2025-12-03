@@ -116,14 +116,19 @@ export default function PickupPage() {
         }
     }, [actionState]);
 
-    console.log('RAW FORM DATA packages:', formData.packages);
-    console.log('Package 0 type:', typeof formData.packages[0].weight);
-    console.log('Package 0 dimensions type:', typeof formData.packages[0].dimensions.length);
     // useEffect(() => {
     //     if (actionState.paymentUrl) {
     //         window.location.href = actionState.paymentUrl;
     //     }
     // }, [actionState.paymentUrl]);
+
+    useEffect(() => {
+        const redirectPath = sessionStorage.getItem('postCancelRedirect');
+        if (redirectPath) {
+            sessionStorage.removeItem('postCancelRedirect');
+            window.location.href = redirectPath; // Full redirect
+        }
+    }, []);
 
     useEffect(() => {
         const prefillData = localStorage.getItem('prefillParcelData');
@@ -135,14 +140,6 @@ export default function PickupPage() {
                     form.setValue('pickupDetails.contact.name', customer.name);
                     form.setValue('pickupDetails.contact.phone', customer.phone);
                     form.setValue('pickupDetails.contact.email', customer.email || '');
-                    // if (customer.address) {
-                    //     form.setValue('pickupDetails.address.line1', customer.address.line1 || '');
-                    //     form.setValue('pickupDetails.address.city', customer.address.city || '');
-                    //     form.setValue('pickupDetails.address.state', customer.address.state || '');
-                    //     form.setValue('pickupDetails.address.postalCode', customer.address.postalCode || '');
-                    //     form.setValue('pickupDetails.address.country', customer.address.country || 'US');
-                    //     form.setValue('pickupDetails.locationType', 'custom');
-                    // }
                     if (customer.address) {
                         const countryId = COUNTRY_CODE_TO_ID[customer.address.country] || 233; // fallback to US (233)
                         const type = 'pickup'
@@ -224,6 +221,8 @@ export default function PickupPage() {
                     onOpenChange={setShowSuccessAlert}
                     pickupId={actionState.pickupId}
                     formData={formData}
+                    paymentUrl={actionState.paymentUrl} // 👈 add this
+                    paymentStatus="PENDING" // or fetch from DB: pickup.paymentStatus
                 />
             </Form>
         </div>

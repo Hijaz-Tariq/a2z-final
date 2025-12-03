@@ -57,7 +57,8 @@ export default auth(async (req: AuthNextRequest) => {
   const isApiStoreRoute = apiStorePrefix.some((prefix) =>
     nextUrl.pathname.toLowerCase().startsWith(prefix.toLowerCase())
   );
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const isPublicRoute = publicRoutes.includes(nextUrl.pathname) ||
+  nextUrl.pathname.startsWith('/track/');
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
   if (isApiAuthRoute || isApiStoreRoute) {

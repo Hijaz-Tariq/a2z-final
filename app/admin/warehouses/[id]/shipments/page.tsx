@@ -222,45 +222,42 @@ export default function WarehouseShipmentsPage({
                     </div>
                 </CardContent>
             </Card>
-
-            {/* Outbound Shipments */}
             <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-
-                        <div className="flex gap-2 mt-3">
-                            <ArrowUp className="w-5 h-5 text-blue-600" />
-                            Outbound Shipments ({warehouse.outboundPickups.length})
-                            <Button
-                                onClick={() => openBulkSmsFor('outbound')}
-                                size="sm"
-                                disabled={getOutboundRecipients().length === 0}
-                                variant="outline"
-                            >
-                                📩 Bulk SMS – Outbound ({getOutboundRecipients().length})
-                            </Button>
+                <CardHeader className="pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-center gap-2 text-lg">
+                            <ArrowUp className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                            <span>Outbound Shipments ({warehouse.outboundPickups.length})</span>
                         </div>
-                    </CardTitle>
+
+                        <Button
+                            onClick={() => openBulkSmsFor('outbound')}
+                            size="sm"
+                            disabled={getOutboundRecipients().length === 0}
+                            variant="outline"
+                            className="w-full sm:w-auto whitespace-nowrap"
+                        >
+                            📩 Bulk SMS – Outbound ({getOutboundRecipients().length})
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {warehouse.outboundPickups.length === 0 ? (
                         <p className="text-gray-500 text-sm">No outbound shipments found.</p>
                     ) : (
-                        <div className="border rounded-md">
+                        <div className="border rounded-md overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>ID</TableHead>
+                                        <TableHead>Contact</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead>Message</TableHead>
-                                        <TableHead>Edit</TableHead>
                                         <TableHead>Scheduled</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {warehouse.outboundPickups.map((pickup) => (
                                         <TableRow key={pickup.id}>
-                                            <TableCell className="font-mono text-sm w-48">
+                                            <TableCell className="font-mono text-sm min-w-[160px]">
                                                 {pickup.deliveryContact ? (
                                                     <div>
                                                         <div className="font-medium">{pickup.deliveryContact.name}</div>
@@ -275,7 +272,7 @@ export default function WarehouseShipmentsPage({
                                                     {pickup.status.replace(/_/g, ' ')}
                                                 </span>
                                             </TableCell>
-                                            <TableCell className="w-48">
+                                            <TableCell className="whitespace-nowrap">
                                                 {formatDate(pickup.scheduledDate)}
                                             </TableCell>
                                         </TableRow>
@@ -286,36 +283,40 @@ export default function WarehouseShipmentsPage({
                     )}
                 </CardContent>
             </Card>
+            {/* Outbound Shipments */}
+
 
             {/* Inbound Shipments */}
             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                        <div className="flex gap-2 mt-3">
-                            <ArrowDown className="w-5 h-5 text-green-600" />
-                            Inbound Shipments ({warehouse.inboundPickups.length})
-                            <Button
-                                onClick={() => openBulkSmsFor('inbound')}
-                                size="sm"
-                                disabled={getInboundRecipients().length === 0}
-                                variant="outline"
-                            >
-                                📩 Bulk SMS – Inbound ({getInboundRecipients().length})
-                            </Button>
+                <CardHeader className="pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-center gap-2 text-lg">
+                            <ArrowDown className="w-5 h-5 text-green-600 flex-shrink-0" />
+                            <span>Inbound Shipments ({warehouse.inboundPickups.length})</span>
                         </div>
-                    </CardTitle>
+
+                        <Button
+                            onClick={() => openBulkSmsFor('inbound')}
+                            size="sm"
+                            disabled={getInboundRecipients().length === 0}
+                            variant="outline"
+                            className="w-full sm:w-auto whitespace-nowrap"
+                        >
+                            📩 Bulk SMS – Inbound ({getInboundRecipients().length})
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {warehouse.inboundPickups.length === 0 ? (
                         <p className="text-gray-500 text-sm">No inbound shipments found.</p>
                     ) : (
-                        <div className="border rounded-md">
+                        <div className="border rounded-md overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Recepient</TableHead>
+                                        <TableHead>Recipient</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead>Message</TableHead>
+                                        <TableHead>Actions</TableHead>
                                         <TableHead>Edit</TableHead>
                                         <TableHead>Scheduled</TableHead>
                                     </TableRow>
@@ -323,15 +324,12 @@ export default function WarehouseShipmentsPage({
                                 <TableBody>
                                     {warehouse.inboundPickups.map((pickup) => (
                                         <TableRow key={pickup.id}>
-                                            <TableCell className="font-mono text-sm w-48">
-                                                {pickup.pickupContact ? (
+                                            <TableCell className="font-mono text-sm min-w-[160px]">
+                                                {pickup.deliveryContact ? (
                                                     <div>
-                                                        {/* <div className="font-medium">{pickup.pickupContact.name}</div>
-                                                        <div className="text-sm text-gray-500">{pickup.pickupContact.phone}</div> */}
-                                                        <div className="font-medium">{pickup.deliveryContact?.name}</div>
-                                                        <div className="text-sm text-gray-500">{pickup.deliveryContact?.phone}</div>
+                                                        <div className="font-medium">{pickup.deliveryContact.name}</div>
+                                                        <div className="text-sm text-gray-500">{pickup.deliveryContact.phone}</div>
                                                     </div>
-
                                                 ) : (
                                                     <span className="text-gray-400">N/A</span>
                                                 )}
@@ -341,26 +339,30 @@ export default function WarehouseShipmentsPage({
                                                     {pickup.status.replace(/_/g, ' ')}
                                                 </span>
                                             </TableCell>
-                                            {pickup.deliveryContact && (
-                                                <TableCell>
+                                            <TableCell>
+                                                {pickup.deliveryContact ? (
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        onClick={() => handleOpenSmsModal(
-                                                            pickup.deliveryContact!.name,
-                                                            pickup.deliveryContact!.phone
-                                                        )}
+                                                        onClick={() =>
+                                                            handleOpenSmsModal(
+                                                                pickup.deliveryContact!.name,
+                                                                pickup.deliveryContact!.phone
+                                                            )
+                                                        }
                                                     >
                                                         Send SMS
                                                     </Button>
-                                                </TableCell>
-                                            )}
-                                            <TableCell className="w-48">
-                                                <Link href={`/admin/pickup/${pickup.id}`}>
-                                                    <Edit />
+                                                ) : (
+                                                    <span className="text-gray-400">—</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                <Link href={`/admin/pickup/${pickup.id}`} className="text-blue-600 hover:underline">
+                                                    <Edit className="w-4 h-4" />
                                                 </Link>
                                             </TableCell>
-                                            <TableCell className="w-48">
+                                            <TableCell className="whitespace-nowrap">
                                                 {formatDate(pickup.scheduledDate)}
                                             </TableCell>
                                         </TableRow>

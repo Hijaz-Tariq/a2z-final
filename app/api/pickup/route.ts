@@ -186,8 +186,36 @@ export async function POST(req: Request) {
         calculatedCost: totalCost,
         costCurrency: data.costCurrency || "USD",
       },
-      include: { items: true, packages: true },
+      include: {
+        items: true,
+        packages: true,
+        pickupWarehouse: true, 
+        deliveryWarehouse: true,
+      },
     });
+
+    // Generate a tracking number
+const trackingNumber = `A2Z${pickup.id.substring(0, 8).toUpperCase()}`;
+
+// Create ShippingTracking
+await db.shippingTracking.create({
+   data: {
+    trackingNumber,
+    carrier: "A2Z Express",
+    status: ShippingStatus.PENDING,
+    pickup: { connect: { id: pickup.id } },
+    events: {
+      create: {
+        eventType: "PENDING",
+        details: "Pickup request received",
+        location: customPickupAddress
+          ? `${customPickupAddress.city}, ${customPickupAddress.country}`
+          : pickup.pickupWarehouse?.name || "Unknown origin",
+        occurredAt: new Date(),
+      },
+    },
+  },
+});
 
     return NextResponse.json(pickup, { status: 201 });
   } catch (error: any) {
